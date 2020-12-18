@@ -16,16 +16,20 @@ The design is as follows:
 
 #### Making changes
 The project structure is divided into the following:
-  a) **CachePurgeLibrary**: 
+
+  1) **CachePurgeLibrary**: 
      - non-CDN specific code that is utilized throughout the solution
      - no changes needed if you're not making significant structural changes to the project 
-  b) **CdnLibrary**: 
+     
+  2) **CdnLibrary**: 
      - CDN library code used in CdnPlugins and MultiCdnApi
      - will need to edit this project heavily to add your own custom CDN specific processing logic
-  c) **CdnPlugins**:
+     
+  3) **CdnPlugins**:
      - contains CdnPlugin functions and EventCompletion function
      - change as needed based on CDNs used
-  d) **MultiCdnApi**:
+     
+  4) **MultiCdnApi**:
      - contains user facing API
      - change as needed based on CDNs and user input
 
