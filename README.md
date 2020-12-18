@@ -1,9 +1,9 @@
 
 # CachePurge: Cache Invalidation and Purge for multiple CDNs
-CachePurge is a centralized service that allows the user to invalidate and purge cache from multiple CDNs easily. CacheOut is implemented in C# using the dotnet core framework
+CachePurge is a centralized service that allows the user to invalidate and purge cache from multiple CDNs easily.
 
 ## Introduction
-CachePurge uses a combination of [Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/), [CosmosDB](https://docs.microsoft.com/en-us/azure/cosmos-db/) and [Azure Queues](https://docs.microsoft.com/en-us/azure/storage/queues/storage-queues-introduction) to create a workflow that begins upon receiving a purge request from the user. 
+CacheOut is implemented in C# using the dotnet core framework and uses a combination of [Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/), [CosmosDB](https://docs.microsoft.com/en-us/azure/cosmos-db/) and [Azure Queues](https://docs.microsoft.com/en-us/azure/storage/queues/storage-queues-introduction) to create a workflow that begins upon receiving a purge request from the user. 
 
 The design is as follows:
 ![Cache Purge Initial Design](InitialDesign.png)
