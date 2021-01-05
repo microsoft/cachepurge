@@ -24,7 +24,6 @@ namespace CdnLibrary
 
         private readonly ILogger logger;
 
-        // TODO: Implement for delete
         public AkamaiPlugin(ILogger logger)
         {
             this.logger = logger;
