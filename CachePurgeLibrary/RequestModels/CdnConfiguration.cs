@@ -10,9 +10,8 @@ namespace CachePurgeLibrary
 
     public class CdnConfiguration
     {
-        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global - used to deserialize JSON
         public string Hostname { get; set; }
-        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global - used to deserialize JSON
+
         public IDictionary<string, string> CdnWithCredentials { get; set; }
 
         public CdnConfiguration()

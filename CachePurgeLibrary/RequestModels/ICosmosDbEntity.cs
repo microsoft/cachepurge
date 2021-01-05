@@ -10,7 +10,7 @@ namespace CachePurgeLibrary
     public interface ICosmosDbEntity
     {
         [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Needs to be lowercase for CosmosDB to use this value as the id of the item")]
-        // ReSharper disable once InconsistentNaming
+
         public string id { get; set; }
     }
 }
