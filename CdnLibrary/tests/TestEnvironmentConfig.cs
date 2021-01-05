@@ -13,14 +13,10 @@ namespace CdnPlugin
     {
         public static readonly Dictionary<string, string> EnvironmentVariables = new Dictionary<string, string>
         {
-            [EnvironmentConfig.CosmosDBConnection] = "CosmosDBConnection", // 'CacheOutTestCosmosDbAuthKey' - for 'cacheouttestdb' Cosmos DB 
-            [EnvironmentConfig.CosmosDatabaseId] = "CacheOut", // 'CacheOut' - for 'cacheouttestdb' Cosmos DB
-            
-            // 'userRequestToPartnerRequest' - for 'cacheouttestdb' Cosmos DB, for testing only
-            // 'AFD_PartnerRequest' - for 'cacheouttestdb' Cosmos DB, for AFD testing
-            // todo: 'Akamai_CdnRequest' - for 'cacheouttestdb' Cosmos DB, for Akamai testing
-            [EnvironmentConfig.PartnerCosmosContainerId] = "partners", // 'partners' - for 'cacheouttestdb' Cosmos DB
-            [EnvironmentConfig.UserRequestCosmosContainerId] = "userRequests", // 'userRequests' - for 'cacheouttestdb' Cosmos DB
+            [EnvironmentConfig.CosmosDBConnection] = "CosmosDBConnection",
+            [EnvironmentConfig.CosmosDatabaseId] = "CacheOut",
+            [EnvironmentConfig.PartnerCosmosContainerId] = "partners",
+            [EnvironmentConfig.UserRequestCosmosContainerId] = "userRequests",
         };
 
         public static void SetupTestEnvironment()

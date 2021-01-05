@@ -20,7 +20,6 @@ namespace MultiCdnApi
 
     public class CacheFunctions
     {
-        // todo: handle exceptions and logging across all Azure Functions
         private readonly IRequestTable<Partner> partnerTable;
         private readonly IRequestTable<UserRequest> userRequestTable;
         private readonly IPartnerRequestTableManager<CDN> partnerRequestTable;
