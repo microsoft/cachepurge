@@ -17,6 +17,7 @@ namespace MultiCdnApi
     using System.IO;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Swagger;
 
     public class CacheFunctions
     {
@@ -33,6 +34,15 @@ namespace MultiCdnApi
             this.userRequestTable = userRequestTable;
         }
 
+        [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
+            @"{" + "\n"
+                 + @"    ""Description"": ""Operation Description""," + "\n"
+                 + @"    ""Hostname"": ""Purge Hostname""," + "\n"
+                 + @"    ""Urls"": [" + "\n"
+                 + @"        ""url1""," + "\n"
+                 + @"        ""url2""" + "\n"
+                 + @"    ]" + "\n"
+                 + @"}")]
         [FunctionName("CreateCachePurgeRequestByHostname")]
         public async Task<IActionResult> CreateCachePurgeRequestByHostname(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]

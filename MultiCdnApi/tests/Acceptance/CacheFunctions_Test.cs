@@ -14,7 +14,6 @@ namespace MultiCdnApi
     using CdnLibrary;
     using CdnLibrary_Test;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Internal;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -76,12 +75,10 @@ namespace MultiCdnApi
         [TestMethod]
         public async Task CreateCachePurgeRequestByHostname_Fail()
         {
-            var defaultHttpRequest = new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes(TestHostname))
-            };
+            var malformedCachePurgeRequest = new DefaultHttpContext().Request;
+            malformedCachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes(TestHostname));
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
-                defaultHttpRequest,
+                malformedCachePurgeRequest,
                 null,
                 Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
@@ -123,17 +120,15 @@ namespace MultiCdnApi
 
         private async Task<string> CallPurgeFunctionWithDefaultParameters()
         {
-            var defaultHttpRequest = new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
-                                                               $@"""Description"": ""{TestDescription}""," +
-                                                               $@"""TicketId"": ""{TestTicketId}""," +
-                                                               $@"""Hostname"": ""{TestHostname}""," +
-                                                               $@"""Urls"": [""{TestHostname}""]" +
-                                                               "}"))
-            };
+            var cachePurgeRequest = new DefaultHttpContext().Request;
+            cachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
+                                                                              $@"""Description"": ""{TestDescription}""," +
+                                                                              $@"""TicketId"": ""{TestTicketId}""," +
+                                                                              $@"""Hostname"": ""{TestHostname}""," +
+                                                                              $@"""Urls"": [""{TestHostname}""]" + 
+                                                                              "}"));
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
-                defaultHttpRequest,
+                cachePurgeRequest,
                 testPartnerId,
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(StringResult), result.GetType());
@@ -143,9 +138,9 @@ namespace MultiCdnApi
         
         private async Task<UserRequestStatusResult> CallPurgeStatus(string userRequestId)
         {
-            var defaultHttpRequest = new DefaultHttpRequest(new DefaultHttpContext());
+            var emptyRequest = new DefaultHttpContext().Request;
             var statusResponse = await cacheFunctions.CachePurgeRequestByHostnameStatus(
-                defaultHttpRequest,
+                emptyRequest,
                 testPartnerId,
                 userRequestId,
                 Mock.Of<ILogger>());

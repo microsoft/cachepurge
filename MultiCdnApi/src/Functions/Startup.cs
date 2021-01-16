@@ -3,9 +3,12 @@
  * Licensed under the MIT License.
  * ----------------------------------------------------------------------- */
 
+using AzureFunctions.Extensions.Swashbuckle;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using MultiCdnApi;
+using MultiCdnApi.Swagger;
 using CachePurgeLibrary;
 using CdnLibrary;
 
@@ -16,9 +19,14 @@ namespace MultiCdnApi
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddSingleton<IRequestTable<Partner>>((s) => { return new PartnerTable(); });
-            builder.Services.AddSingleton<IRequestTable<UserRequest>>((s) => { return new UserRequestTable(); });
-            builder.Services.AddSingleton<IPartnerRequestTableManager<CDN>>((s) => { return new PartnerRequestTableManager(); });
+            builder.Services.AddSingleton<IRequestTable<Partner>>(s => new PartnerTable());
+            builder.Services.AddSingleton<IRequestTable<UserRequest>>(s => new UserRequestTable());
+            builder.Services.AddSingleton<IPartnerRequestTableManager<CDN>>(s => new PartnerRequestTableManager());
+
+            builder.AddSwashBuckle(Assembly.GetExecutingAssembly(),
+                options => {
+                    options.ConfigureSwaggerGen = genOptions => genOptions.OperationFilter<PostContentFilter>();
+                });
         }
     }
 }
