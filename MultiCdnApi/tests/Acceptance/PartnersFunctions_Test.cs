@@ -13,7 +13,6 @@ namespace MultiCdnApi
     using CdnLibrary;
     using CdnLibrary_Test;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Internal;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Primitives;
@@ -57,13 +56,9 @@ namespace MultiCdnApi
         [TestMethod]
         public void TestCreatePartner_Fail()
         {
-            var createPartnerResponse = partnerFunctions.CreatePartner(new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Query = new QueryCollection(new Dictionary<string, StringValues>
-                {
-                    ["Test"] = "Bad"
-                }
-            )}, null).Result;
+            var malformedCreatePartnerRequest = new DefaultHttpContext().Request;
+            malformedCreatePartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["Test"] = "Bad"});
+            var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, null).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), createPartnerResponse.GetType());
         }
@@ -109,13 +104,10 @@ namespace MultiCdnApi
             Assert.AreEqual(typeof(StringResult), testPartnerResponse.GetType());
             var partnerId = ((StringResult) testPartnerResponse).Value.ToString();
 
-            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Query = new QueryCollection(new Dictionary<string, StringValues>
-                {
-                    ["partnerId"] = partnerId
-                })
-            }, null).Result;
+            var getPartnerRequest = new DefaultHttpContext().Request;
+            getPartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["partnerId"] = partnerId});
+
+            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, null).Result;
 
             Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
 
@@ -126,10 +118,7 @@ namespace MultiCdnApi
         [TestMethod]
         public void TestGetPartner_Fail()
         {
-            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Query = new QueryCollection()
-            }, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, null).Result;
 
             Assert.AreEqual(typeof(StringResult), partnerResult.GetType());
         }
@@ -140,7 +129,7 @@ namespace MultiCdnApi
             this.partners.Clear();
             CreateTestPartner();
             var partnersResponse =
-                partnerFunctions.ListPartners(new DefaultHttpRequest(new DefaultHttpContext()), null).Result;
+                partnerFunctions.ListPartners(new DefaultHttpContext().Request, null).Result;
             Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
             var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
 
@@ -154,16 +143,16 @@ namespace MultiCdnApi
 
         private IActionResult CreateTestPartner()
         {
-            var createPartnerResponse = partnerFunctions.CreatePartner(new DefaultHttpRequest(new DefaultHttpContext())
-            {
-                Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
-                                                               $@"""Tenant"": ""{TenantId}""," +
-                                                               $@"""Name"": ""{Name}""," +
-                                                               $@"""ContactEmail"": ""{DriContact}""," +
-                                                               $@"""NotifyContactEmail"": ""{NotifyContact}""," +
-                                                               $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
-                                                               "}"))
-            }, Mock.Of<ILogger>());
+            var createPartnerRequest = new DefaultHttpContext().Request;
+            createPartnerRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
+                                                                              $@"""Tenant"": ""{TenantId}""," +
+                                                                              $@"""Name"": ""{Name}""," +
+                                                                              $@"""ContactEmail"": ""{DriContact}""," +
+                                                                              $@"""NotifyContactEmail"": ""{NotifyContact}""," +
+                                                                              $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
+                                                                              "}"));
+
+            var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, Mock.Of<ILogger>());
             return createPartnerResponse.Result;
         }
     }

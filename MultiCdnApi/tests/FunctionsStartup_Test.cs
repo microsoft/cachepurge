@@ -10,14 +10,14 @@ namespace MultiCdnApi
     using CachePurgeLibrary;
     using Microsoft.Azure.Functions.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
-    using NUnit.Framework;
 
     public class FunctionsStartup_Test
     {
         private IFunctionsHostBuilder functionsHostBuilder;
 
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
             var multiCdnFunctionsStartup = new Startup();
@@ -25,14 +25,14 @@ namespace MultiCdnApi
             multiCdnFunctionsStartup.Configure(functionsHostBuilder);
         }
 
-        [Test]
+        [TestMethod]
         public void TestSetupPartnerTable()
         {
             var partnerTableService = FindServiceByType(functionsHostBuilder, typeof(IRequestTable<Partner>));
             Assert.IsNotNull(partnerTableService);
         }
 
-        [Test]
+        [TestMethod]
         public void TestSetupUserRequestTable()
         {
             var userRequestTable = FindServiceByType(functionsHostBuilder, typeof(IRequestTable<UserRequest>));
