@@ -60,11 +60,12 @@ namespace MultiCdnApi
                 }
 
                 var bodyContent = await new StreamReader(req.Body).ReadToEndAsync();
-                var purgeRequest = JsonSerializer.Deserialize<PurgeRequest>(bodyContent);
-                var urls = new HashSet<string>(purgeRequest.Urls);
+                var purgeRequest = JsonSerializer.Deserialize<PurgeRequest>(bodyContent,
+                    new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 var description = purgeRequest.Description;
                 var ticketId = purgeRequest.TicketId;
                 var hostname = purgeRequest.Hostname;
+                var urls = ResolveUrls(hostname, purgeRequest.Urls);
                 log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}: purging {urls.Count} urls for partner {partnerId}");
 
                 var partner = await partnerTable.GetItem(partnerId);
@@ -95,7 +96,6 @@ namespace MultiCdnApi
             }
         }
 
-
         [FunctionName("CachePurgeRequestByHostnameStatus")]
         public async Task<IActionResult> CachePurgeRequestByHostnameStatus(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId}/CachePurgeStatus/{userRequestId}")]
@@ -115,6 +115,35 @@ namespace MultiCdnApi
                 log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: got exception {e.Message}; {e.StackTrace}");
                 return new ExceptionResult(e);
             }
+        }
+        
+        
+        private ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
+        {
+            var result = new HashSet<string>();
+            Uri parsedHostname = null;
+            if (!string.IsNullOrWhiteSpace(hostname))
+            {
+                parsedHostname = new Uri(hostname);
+            }
+            foreach (var purgeRequestUrl in purgeRequestUrls)
+            {
+                var parsedUrl = new Uri(purgeRequestUrl);
+                if (parsedUrl.IsAbsoluteUri)
+                {
+                    result.Add(purgeRequestUrl);
+                }
+                else
+                {
+                    if (parsedHostname == null)
+                    {
+                        throw new InvalidOperationException("Urls are not absolute, but the hostname is empty");
+                    }
+                    parsedUrl = new Uri(parsedHostname, purgeRequestUrl);
+                    result.Add(parsedUrl.ToString());
+                }
+            }
+            return result;
         }
     }
 }

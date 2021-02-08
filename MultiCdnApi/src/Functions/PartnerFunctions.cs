@@ -16,6 +16,7 @@ namespace MultiCdnApi
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.Http;
     using Microsoft.Extensions.Logging;
+    using Swagger;
 
     public class PartnerFunctions
     {
@@ -49,6 +50,20 @@ namespace MultiCdnApi
             }
         }
         
+        [PostContent("CreatePartner", "Create new Partner",
+            @"{" + "\n"
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Multimedia'" + "\n"
+            + @"  ""ContactEmail"": ""contact@example.com"", // contact email (currently not used, just saved)" + "\n"
+            + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications (currently not used, just saved)" + "\n"
+            + @"  ""CdnConfiguration"": {" + "\n"
+            + @"     ""Hostname"": """", // currently not used" + "\n"
+            + @"     ""CdnWithCredentials"": {" + "\n"
+            + @"        ""AFD"":"""", // credential values are currently not used" + "\n"
+            + @"        ""Akamai"": """" // credential values are currently not used" + "\n"
+            + @"     }" 
+            + @"  }" + "\n"
+            + @"}")]
         [FunctionName("CreatePartner")]
         public async Task<IActionResult> CreatePartner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "partners")]
@@ -58,7 +73,7 @@ namespace MultiCdnApi
             try
             {
                 var requestContent = await new StreamReader(req.Body).ReadToEndAsync();
-                var createPartnerRequest = JsonSerializer.Deserialize<PartnerConfigRequest>(requestContent);
+                var createPartnerRequest = JsonSerializer.Deserialize<PartnerConfigRequest>(requestContent, new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 
                 log.LogInformation($"{nameof(CreatePartner)}: {createPartnerRequest}");
 
