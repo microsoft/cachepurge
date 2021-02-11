@@ -52,8 +52,8 @@ namespace MultiCdnApi
         
         [PostContent("CreatePartner", "Create new Partner",
             @"{" + "\n"
-            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'" + "\n"
-            + @"  ""Name"": ""partner_name"", // for example, 'Multimedia'" + "\n"
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used to call AFD API to purge caches" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used to call AFD API to purge caches" + "\n"
             + @"  ""ContactEmail"": ""contact@example.com"", // contact email (currently not used, just saved)" + "\n"
             + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications (currently not used, just saved)" + "\n"
             + @"  ""CdnConfiguration"": {" + "\n"
