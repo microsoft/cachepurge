@@ -33,16 +33,13 @@ namespace MultiCdnApi
         public async Task<IActionResult> GetPartner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners/{partnerId:guid}")]
             HttpRequest req,
+            Guid partnerId,
             ILogger log)
         {
             try
             {
-                if (req.Query.TryGetValue(PartnerIdParameter, out var id)) 
-                {
-                    var partner = await partnerTable.GetItem(id);
-                    return new PartnerResult(partner);
-                }
-                return new StringResult("Please pass in partnerId query parameter");
+                var partner = await partnerTable.GetItem(partnerId.ToString());
+                return new PartnerResult(partner);
             }
             catch (Exception e)
             {

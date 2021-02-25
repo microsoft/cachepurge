@@ -5,6 +5,7 @@
 
 namespace MultiCdnApi
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -107,7 +108,7 @@ namespace MultiCdnApi
             var getPartnerRequest = new DefaultHttpContext().Request;
             getPartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["partnerId"] = partnerId});
 
-            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), null).Result;
 
             Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
 
@@ -118,7 +119,7 @@ namespace MultiCdnApi
         [TestMethod]
         public void TestGetPartner_Fail()
         {
-            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, null).Result;
 
             Assert.AreEqual(typeof(StringResult), partnerResult.GetType());
         }
