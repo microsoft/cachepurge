@@ -49,15 +49,15 @@ namespace MultiCdnApi
         
         [PostContent("CreatePartner", "Create new Partner",
             @"{" + "\n"
-            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used to call AFD API to purge caches" + "\n"
-            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used to call AFD API to purge caches" + "\n"
-            + @"  ""ContactEmail"": ""contact@example.com"", // contact email (currently not used, just saved)" + "\n"
-            + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications (currently not used, just saved)" + "\n"
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used in AFD API to purge caches" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used in AFD API to purge caches" + "\n"
+            + @"  ""ContactEmail"": ""contact@example.com"", // contact email" + "\n"
+            + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications" + "\n"
             + @"  ""CdnConfiguration"": {" + "\n"
-            + @"     ""Hostname"": """", // currently not used" + "\n"
+            + @"     ""Hostname"": """"," + "\n"
             + @"     ""CdnWithCredentials"": {" + "\n"
-            + @"        ""AFD"":"""", // credential values are currently not used" + "\n"
-            + @"        ""Akamai"": """" // credential values are currently not used" + "\n"
+            + @"        ""AFD"":"""", // Can be empty (default auth will be used)" + "\n"
+            + @"        ""Akamai"": """" // Can be empty (default auth will be used)" + "\n"
             + @"     }" 
             + @"  }" + "\n"
             + @"}")]
