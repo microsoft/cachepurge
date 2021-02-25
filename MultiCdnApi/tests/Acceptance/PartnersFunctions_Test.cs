@@ -121,7 +121,7 @@ namespace MultiCdnApi
         {
             var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, null).Result;
 
-            Assert.AreEqual(typeof(StringResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
         }
 
         [TestMethod]
