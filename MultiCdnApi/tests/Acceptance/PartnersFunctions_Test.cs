@@ -59,7 +59,8 @@ namespace MultiCdnApi
         {
             var malformedCreatePartnerRequest = new DefaultHttpContext().Request;
             malformedCreatePartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["Test"] = "Bad"});
-            var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, null).Result;
+            var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, 
+                ApiTestsHelper.CreateTestClaimsPrincipal(),null).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), createPartnerResponse.GetType());
         }
@@ -108,7 +109,8 @@ namespace MultiCdnApi
             var getPartnerRequest = new DefaultHttpContext().Request;
             getPartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["partnerId"] = partnerId});
 
-            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), null).Result;
+            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), 
+                ApiTestsHelper.CreateTestClaimsPrincipal(), null).Result;
 
             Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
 
@@ -119,7 +121,8 @@ namespace MultiCdnApi
         [TestMethod]
         public void TestGetPartner_Fail()
         {
-            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, 
+                ApiTestsHelper.CreateTestClaimsPrincipal(),null).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
         }
@@ -130,7 +133,8 @@ namespace MultiCdnApi
             this.partners.Clear();
             CreateTestPartner();
             var partnersResponse =
-                partnerFunctions.ListPartners(new DefaultHttpContext().Request, null).Result;
+                partnerFunctions.ListPartners(new DefaultHttpContext().Request, 
+                    ApiTestsHelper.CreateTestClaimsPrincipal(), null).Result;
             Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
             var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
 
@@ -153,7 +157,8 @@ namespace MultiCdnApi
                                                                               $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
                                                                               "}"));
 
-            var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, Mock.Of<ILogger>());
+            var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
+                ApiTestsHelper.CreateTestClaimsPrincipal(), Mock.Of<ILogger>());
             return createPartnerResponse.Result;
         }
     }

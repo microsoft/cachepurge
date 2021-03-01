@@ -8,6 +8,8 @@ namespace MultiCdnApi
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Claims;
+    using System.Security.Principal;
     using System.Text;
     using System.Threading.Tasks;
     using CachePurgeLibrary;
@@ -80,6 +82,7 @@ namespace MultiCdnApi
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
                 malformedCachePurgeRequest,
                 null,
+                ApiTestsHelper.CreateTestClaimsPrincipal(), 
                 Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
         }
@@ -130,12 +133,13 @@ namespace MultiCdnApi
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
                 cachePurgeRequest,
                 testPartnerId,
+                ApiTestsHelper.CreateTestClaimsPrincipal(),
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(StringResult), result.GetType());
             Assert.IsTrue(((StringResult) result).Value is string);
             return (string) ((StringResult) result).Value;
         }
-        
+
         private async Task<UserRequestStatusResult> CallPurgeStatus(string userRequestId)
         {
             var emptyRequest = new DefaultHttpContext().Request;
@@ -143,6 +147,7 @@ namespace MultiCdnApi
                 emptyRequest,
                 testPartnerId,
                 userRequestId,
+                ApiTestsHelper.CreateTestClaimsPrincipal(),
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(UserRequestStatusResult), statusResponse.GetType());
             var userRequestStatusResult = (UserRequestStatusResult) statusResponse;
