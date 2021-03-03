@@ -24,7 +24,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(SwaggerJson)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             return Task.FromResult(swashBuckleClient.CreateSwaggerDocumentResponse(req));
         }
 
@@ -38,7 +38,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(SwaggerUi)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             return Task.FromResult(swashBuckleClient.CreateSwaggerUIResponse(req, "swagger/json"));
         }
     }

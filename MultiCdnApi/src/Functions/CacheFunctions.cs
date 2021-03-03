@@ -53,7 +53,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             try
             {
                 if (partnerId == null)
@@ -108,7 +108,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: {userRequestId} (partnerId={partnerId});" +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             try
             {
                 var userRequest = await userRequestTable.GetItem(userRequestId);

@@ -86,6 +86,18 @@ namespace MultiCdnApi
                 Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
         }
+        
+        [TestMethod]
+        public async Task ApiWorksWithoutPrincipals()
+        {
+            var malformedCachePurgeRequest = new DefaultHttpContext().Request;
+            malformedCachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes(TestHostname));
+
+            var result = await cacheFunctions.CreateCachePurgeRequestByHostname(malformedCachePurgeRequest, null, null, Mock.Of<ILogger>());
+            Assert.IsTrue(result is JsonResult);
+            result = await cacheFunctions.CachePurgeRequestByHostnameStatus(malformedCachePurgeRequest, null, null, null, Mock.Of<ILogger>());
+            Assert.IsTrue(result is JsonResult);
+        }
 
         [TestMethod]
         public async Task CreateCachePurgeRequestByHostname_CosmosDbSerialization()

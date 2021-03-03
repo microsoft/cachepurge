@@ -21,8 +21,6 @@ namespace MultiCdnApi
 
     public class PartnerFunctions
     {
-        private const string PartnerIdParameter = "partnerId";
-
         private readonly IRequestTable<Partner> partnerTable;
 
         public PartnerFunctions(IRequestTable<Partner> partnerTable)
@@ -39,7 +37,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(GetPartner)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             try
             {
                 var partner = await partnerTable.GetItem(partnerId.ToString());
@@ -73,7 +71,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(CreatePartner)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             try
             {
                 var requestContent = await new StreamReader(req.Body).ReadToEndAsync();
@@ -104,7 +102,7 @@ namespace MultiCdnApi
             ILogger log)
         {
             log.LogInformation($"{nameof(ListPartners)}; " +
-                               $"invoked by {claimsPrincipal.Identity.Name}");
+                               $"invoked by {claimsPrincipal?.Identity?.Name}");
             try
             {
                 var partners = await partnerTable.GetItems();
