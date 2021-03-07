@@ -7,6 +7,8 @@ namespace MultiCdnApi
 {
     using CachePurgeLibrary;
     using CdnLibrary;
+    using Microsoft.ApplicationInsights;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.WebJobs;
@@ -26,13 +28,21 @@ namespace MultiCdnApi
         private readonly IRequestTable<UserRequest> userRequestTable;
         private readonly IPartnerRequestTableManager<CDN> partnerRequestTable;
 
+        private readonly Metric urlsToPurgeSubmitted;
+        private readonly Metric outgoingRequestsForCdnPlugins;
+
         public CacheFunctions(IRequestTable<Partner> partnerTable,
             IRequestTable<UserRequest> userRequestTable,
-            IPartnerRequestTableManager<CDN> partnerRequestTable)
+            IPartnerRequestTableManager<CDN> partnerRequestTable,
+            TelemetryConfiguration telemetryConfiguration)
         {
             this.partnerTable = partnerTable;
             this.partnerRequestTable = partnerRequestTable;
             this.userRequestTable = userRequestTable;
+            
+            var telemetryClient = new TelemetryClient(telemetryConfiguration);
+            urlsToPurgeSubmitted = telemetryClient.GetMetric($"{nameof(CreateCachePurgeRequestByHostname)} Urls To Purge");
+            outgoingRequestsForCdnPlugins = telemetryClient.GetMetric($"{nameof(CreateCachePurgeRequestByHostname)} Outgoing Requests For CDN Plugins");
         }
 
         [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
@@ -89,7 +99,8 @@ namespace MultiCdnApi
                 }
 
                 await userRequestTable.UpsertItem(userRequest);
-
+                urlsToPurgeSubmitted.TrackValue(urls.Count);
+                outgoingRequestsForCdnPlugins.TrackValue(userRequest.NumTotalPartnerRequests);
                 return new StringResult(userRequestId); 
             }
             catch (Exception e)

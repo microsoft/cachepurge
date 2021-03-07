@@ -8,13 +8,12 @@ namespace MultiCdnApi
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Security.Claims;
-    using System.Security.Principal;
     using System.Text;
     using System.Threading.Tasks;
     using CachePurgeLibrary;
     using CdnLibrary;
     using CdnLibrary_Test;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -52,7 +51,7 @@ namespace MultiCdnApi
 
             partnerRequestTable = new PartnerRequestTableManager(afdPartnerRequestContainer, akamaiPartnerRequestContainer);
 
-            cacheFunctions = new CacheFunctions(partnerTable, userRequestTable, partnerRequestTable);
+            cacheFunctions = new CacheFunctions(partnerTable, userRequestTable, partnerRequestTable, new TelemetryConfiguration());
 
             const string testTenantName = TestTenantId;
             const string testPartnerName = TestPartnerId;
