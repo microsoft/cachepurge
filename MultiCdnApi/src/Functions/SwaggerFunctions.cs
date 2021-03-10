@@ -4,10 +4,10 @@
 namespace MultiCdnApi
 {
     using System.Net.Http;
-    using System.Security.Claims;
     using System.Threading.Tasks;
     using AzureFunctions.Extensions.Swashbuckle;
     using AzureFunctions.Extensions.Swashbuckle.Attribute;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.Http;
     using Microsoft.Extensions.Logging;
@@ -18,28 +18,28 @@ namespace MultiCdnApi
         [FunctionName("SwaggerJson")]
         public static Task<HttpResponseMessage> SwaggerJson(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "swagger/json")]
-            HttpRequestMessage req,
+            HttpRequestMessage requestMessage,
+            HttpRequest request,
             [SwashBuckleClient] ISwashBuckleClient swashBuckleClient,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(SwaggerJson)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
-            return Task.FromResult(swashBuckleClient.CreateSwaggerDocumentResponse(req));
+                               $"invoked by {request.HttpContext.User?.Identity?.Name}");
+            return Task.FromResult(swashBuckleClient.CreateSwaggerDocumentResponse(requestMessage));
         }
 
         [SwaggerIgnore]
         [FunctionName("SwaggerUi")]
         public static Task<HttpResponseMessage> SwaggerUi(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "swagger/ui")]
-            HttpRequestMessage req,
+            HttpRequestMessage requestMessage,
+            HttpRequest req,
             [SwashBuckleClient] ISwashBuckleClient swashBuckleClient,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(SwaggerUi)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
-            return Task.FromResult(swashBuckleClient.CreateSwaggerUIResponse(req, "swagger/json"));
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
+            return Task.FromResult(swashBuckleClient.CreateSwaggerUIResponse(requestMessage, "swagger/json"));
         }
     }
 }

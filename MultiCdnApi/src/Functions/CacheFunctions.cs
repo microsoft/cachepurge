@@ -17,7 +17,6 @@ namespace MultiCdnApi
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Security.Claims;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Swagger;
@@ -59,11 +58,10 @@ namespace MultiCdnApi
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]
             HttpRequest req,
             string partnerId,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 if (partnerId == null)
@@ -115,11 +113,10 @@ namespace MultiCdnApi
             HttpRequest req,
             string partnerId,
             string userRequestId,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: {userRequestId} (partnerId={partnerId});" +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var userRequest = await userRequestTable.GetItem(userRequestId);

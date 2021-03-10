@@ -81,7 +81,6 @@ namespace MultiCdnApi
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
                 malformedCachePurgeRequest,
                 null,
-                ApiTestsHelper.CreateTestClaimsPrincipal(), 
                 Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
         }
@@ -92,9 +91,9 @@ namespace MultiCdnApi
             var malformedCachePurgeRequest = new DefaultHttpContext().Request;
             malformedCachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes(TestHostname));
 
-            var result = await cacheFunctions.CreateCachePurgeRequestByHostname(malformedCachePurgeRequest, null, null, Mock.Of<ILogger>());
+            var result = await cacheFunctions.CreateCachePurgeRequestByHostname(malformedCachePurgeRequest, null, Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
-            result = await cacheFunctions.CachePurgeRequestByHostnameStatus(malformedCachePurgeRequest, null, null, null, Mock.Of<ILogger>());
+            result = await cacheFunctions.CachePurgeRequestByHostnameStatus(malformedCachePurgeRequest, null, null, Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
         }
 
@@ -144,7 +143,6 @@ namespace MultiCdnApi
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
                 cachePurgeRequest,
                 testPartnerId,
-                ApiTestsHelper.CreateTestClaimsPrincipal(),
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(StringResult), result.GetType());
             Assert.IsTrue(((StringResult) result).Value is string);
@@ -158,7 +156,6 @@ namespace MultiCdnApi
                 emptyRequest,
                 testPartnerId,
                 userRequestId,
-                ApiTestsHelper.CreateTestClaimsPrincipal(),
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(UserRequestStatusResult), statusResponse.GetType());
             var userRequestStatusResult = (UserRequestStatusResult) statusResponse;

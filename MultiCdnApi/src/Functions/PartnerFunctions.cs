@@ -8,7 +8,6 @@ namespace MultiCdnApi
     using System;
     using System.IO;
     using System.Linq;
-    using System.Security.Claims;
     using System.Text.Json;
     using System.Threading.Tasks;
     using CachePurgeLibrary;
@@ -33,11 +32,10 @@ namespace MultiCdnApi
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners/{partnerId:guid}")]
             HttpRequest req,
             Guid partnerId,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(GetPartner)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var partner = await partnerTable.GetItem(partnerId.ToString());
@@ -67,11 +65,10 @@ namespace MultiCdnApi
         public async Task<IActionResult> CreatePartner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "partners")]
             HttpRequest req,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(CreatePartner)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var requestContent = await new StreamReader(req.Body).ReadToEndAsync();
@@ -98,11 +95,10 @@ namespace MultiCdnApi
         public async Task<IActionResult> ListPartners(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners")]
             HttpRequest req,
-            ClaimsPrincipal claimsPrincipal,
             ILogger log)
         {
             log.LogInformation($"{nameof(ListPartners)}; " +
-                               $"invoked by {claimsPrincipal?.Identity?.Name}");
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var partners = await partnerTable.GetItems();

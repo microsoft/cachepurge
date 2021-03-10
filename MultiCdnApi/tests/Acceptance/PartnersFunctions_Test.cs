@@ -60,7 +60,7 @@ namespace MultiCdnApi
             var malformedCreatePartnerRequest = new DefaultHttpContext().Request;
             malformedCreatePartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["Test"] = "Bad"});
             var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, 
-                ApiTestsHelper.CreateTestClaimsPrincipal(),Mock.Of<ILogger>()).Result;
+                Mock.Of<ILogger>()).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), createPartnerResponse.GetType());
         }
@@ -110,7 +110,7 @@ namespace MultiCdnApi
             getPartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["partnerId"] = partnerId});
 
             var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), 
-                ApiTestsHelper.CreateTestClaimsPrincipal(), Mock.Of<ILogger>()).Result;
+                Mock.Of<ILogger>()).Result;
 
             Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
 
@@ -122,7 +122,7 @@ namespace MultiCdnApi
         public void TestGetPartner_Fail()
         {
             var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, 
-                ApiTestsHelper.CreateTestClaimsPrincipal(),Mock.Of<ILogger>()).Result;
+                Mock.Of<ILogger>()).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
         }
@@ -134,7 +134,7 @@ namespace MultiCdnApi
             CreateTestPartner();
             var partnersResponse =
                 partnerFunctions.ListPartners(new DefaultHttpContext().Request, 
-                    ApiTestsHelper.CreateTestClaimsPrincipal(), Mock.Of<ILogger>()).Result;
+                    Mock.Of<ILogger>()).Result;
             Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
             var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
 
@@ -158,7 +158,7 @@ namespace MultiCdnApi
                                                                               "}"));
 
             var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
-                ApiTestsHelper.CreateTestClaimsPrincipal(), Mock.Of<ILogger>());
+                Mock.Of<ILogger>());
             return createPartnerResponse.Result;
         }
     }
