@@ -4,7 +4,11 @@
 namespace MultiCdnApi
 {
     using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Security.Claims;
     using System.Text;
+    using System.Web.Http;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.WebJobs;
@@ -46,6 +50,16 @@ namespace MultiCdnApi
                 string.Join("; ",
                     httpContextUser.Claims.Where(claim => claim.Type == "groups")
                         .Select(c => c.Type + " : " + c.Value)));
+        }
+
+        [FunctionName("GetRoles")]
+        public IActionResult GetRoles(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/roles")]
+            HttpRequest req,
+            ILogger log)
+        {
+            var roleClaim = ClaimsPrincipal.Current.FindFirst("roles");
+            return new JsonResult(roleClaim);
         }
     }
 }
