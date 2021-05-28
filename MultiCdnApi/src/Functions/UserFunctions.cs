@@ -99,7 +99,7 @@ namespace MultiCdnApi
 
         [FunctionName("GetApiScopes")]
         public IActionResult GetApiScopes(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/roles")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/scopes")]
             HttpRequest req,
             ILogger log)
         {
