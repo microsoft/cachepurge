@@ -3,6 +3,8 @@
 
 namespace MultiCdnApi
 {
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
     using System.Text;
@@ -110,8 +112,18 @@ namespace MultiCdnApi
         private static string SerializeClaim(Claim claim)
         {
             var claimProperties = string.Join(";",
-                claim.Issuer, claim.OriginalIssuer, claim.Properties, claim.Subject, claim.ValueType);
+                claim.Issuer, claim.OriginalIssuer, Serialize(claim.Properties), Serialize(claim.Subject), claim.ValueType);
             return claim + " (" + claimProperties + ")";
+        }
+
+        private static string Serialize(ClaimsIdentity cI)
+        {
+            return string.Join(",", cI.Name, cI.Label, cI.AuthenticationType, cI.NameClaimType, cI.RoleClaimType);
+        }
+
+        private static string Serialize<TKey, TValue>(IDictionary<TKey, TValue> dict)
+        {
+            return "{" + string.Join(";", dict.Select(kv => kv.Key + "->" + kv.Value)) + "}";
         }
     }
 }
