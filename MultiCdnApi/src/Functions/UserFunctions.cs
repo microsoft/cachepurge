@@ -99,13 +99,13 @@ namespace MultiCdnApi
             return new JsonResult(roleClaim);
         }
 
-        [FunctionName("GetApiScopes")]
-        public IActionResult GetApiScopes(
+        [FunctionName("GetScopes")]
+        public IActionResult GetScopes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/scopes")]
             HttpRequest req,
             ILogger log)
         {
-            req.HttpContext.ValidateAppRole("");
+            req.HttpContext.VerifyUserHasAnyAcceptedScope("CachePurge");
             return new JsonResult("OK");
         }
 

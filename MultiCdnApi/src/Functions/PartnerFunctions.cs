@@ -34,6 +34,8 @@ namespace MultiCdnApi
             Guid partnerId,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
             log.LogInformation($"{nameof(GetPartner)}; " +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
@@ -67,6 +69,8 @@ namespace MultiCdnApi
             HttpRequest req,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
             log.LogInformation($"{nameof(CreatePartner)}; " +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
@@ -97,6 +101,8 @@ namespace MultiCdnApi
             HttpRequest req,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
             log.LogInformation($"{nameof(ListPartners)}; " +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try

@@ -60,6 +60,8 @@ namespace MultiCdnApi
             string partnerId,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+            
             log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}; " +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
@@ -115,6 +117,8 @@ namespace MultiCdnApi
             string userRequestId,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
             log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: {userRequestId} (partnerId={partnerId});" +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
