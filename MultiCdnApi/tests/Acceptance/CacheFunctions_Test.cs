@@ -13,6 +13,7 @@ namespace MultiCdnApi
     using CachePurgeLibrary;
     using CdnLibrary;
     using CdnLibrary_Test;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ namespace MultiCdnApi
 
             partnerRequestTable = new PartnerRequestTableManager(afdPartnerRequestContainer, akamaiPartnerRequestContainer);
 
-            cacheFunctions = new CacheFunctions(partnerTable, userRequestTable, partnerRequestTable);
+            cacheFunctions = new CacheFunctions(partnerTable, userRequestTable, partnerRequestTable, new TelemetryConfiguration());
 
             const string testTenantName = TestTenantId;
             const string testPartnerName = TestPartnerId;
@@ -81,6 +82,18 @@ namespace MultiCdnApi
                 malformedCachePurgeRequest,
                 null,
                 Mock.Of<ILogger>());
+            Assert.IsTrue(result is JsonResult);
+        }
+        
+        [TestMethod]
+        public async Task ApiWorksWithoutPrincipals()
+        {
+            var malformedCachePurgeRequest = new DefaultHttpContext().Request;
+            malformedCachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes(TestHostname));
+
+            var result = await cacheFunctions.CreateCachePurgeRequestByHostname(malformedCachePurgeRequest, null, Mock.Of<ILogger>());
+            Assert.IsTrue(result is JsonResult);
+            result = await cacheFunctions.CachePurgeRequestByHostnameStatus(malformedCachePurgeRequest, null, null, Mock.Of<ILogger>());
             Assert.IsTrue(result is JsonResult);
         }
 
@@ -135,7 +148,7 @@ namespace MultiCdnApi
             Assert.IsTrue(((StringResult) result).Value is string);
             return (string) ((StringResult) result).Value;
         }
-        
+
         private async Task<UserRequestStatusResult> CallPurgeStatus(string userRequestId)
         {
             var emptyRequest = new DefaultHttpContext().Request;

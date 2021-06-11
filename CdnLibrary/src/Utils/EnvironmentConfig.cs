@@ -47,5 +47,13 @@ namespace CdnLibrary
         public static int AfdBatchSize = (Environment.GetEnvironmentVariable("Afd_UrlBatchSize")) != null ? Convert.ToInt32(Environment.GetEnvironmentVariable("Afd_UrlBatchSize")) : 200;
 
         public static int AkamaiBatchSize = (Environment.GetEnvironmentVariable("Akamai_UrlBatchSize")) != null ? Convert.ToInt32(Environment.GetEnvironmentVariable("Akamai_UrlBatchSize")) : 200;
+
+        public static readonly bool AuthorizationEnabled =
+            Environment.GetEnvironmentVariable("AuthorizationEnabled") != null
+                ? bool.Parse(Environment.GetEnvironmentVariable("AuthorizationEnabled"))
+                : true;
+
+        
+        public static string AuthorizedGroup = Environment.GetEnvironmentVariable("AuthorizedGroup");
     }
 }

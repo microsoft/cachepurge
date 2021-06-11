@@ -7,6 +7,8 @@ namespace MultiCdnApi
 {
     using CachePurgeLibrary;
     using CdnLibrary;
+    using Microsoft.ApplicationInsights;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.WebJobs;
@@ -25,13 +27,21 @@ namespace MultiCdnApi
         private readonly IRequestTable<UserRequest> userRequestTable;
         private readonly IPartnerRequestTableManager<CDN> partnerRequestTable;
 
+        private readonly Metric urlsToPurgeSubmitted;
+        private readonly Metric outgoingRequestsForCdnPlugins;
+
         public CacheFunctions(IRequestTable<Partner> partnerTable,
             IRequestTable<UserRequest> userRequestTable,
-            IPartnerRequestTableManager<CDN> partnerRequestTable)
+            IPartnerRequestTableManager<CDN> partnerRequestTable,
+            TelemetryConfiguration telemetryConfiguration)
         {
             this.partnerTable = partnerTable;
             this.partnerRequestTable = partnerRequestTable;
             this.userRequestTable = userRequestTable;
+            
+            var telemetryClient = new TelemetryClient(telemetryConfiguration);
+            urlsToPurgeSubmitted = telemetryClient.GetMetric($"{nameof(CreateCachePurgeRequestByHostname)} Urls To Purge");
+            outgoingRequestsForCdnPlugins = telemetryClient.GetMetric($"{nameof(CreateCachePurgeRequestByHostname)} Outgoing Requests For CDN Plugins");
         }
 
         [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
@@ -45,13 +55,15 @@ namespace MultiCdnApi
                  + @"}")]
         [FunctionName("CreateCachePurgeRequestByHostname")]
         public async Task<IActionResult> CreateCachePurgeRequestByHostname(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]
             HttpRequest req,
             string partnerId,
             ILogger log)
         {
-            log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}");
-
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+            
+            log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}; " +
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 if (partnerId == null)
@@ -60,11 +72,12 @@ namespace MultiCdnApi
                 }
 
                 var bodyContent = await new StreamReader(req.Body).ReadToEndAsync();
-                var purgeRequest = JsonSerializer.Deserialize<PurgeRequest>(bodyContent);
-                var urls = new HashSet<string>(purgeRequest.Urls);
+                var purgeRequest = JsonSerializer.Deserialize<PurgeRequest>(bodyContent,
+                    new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 var description = purgeRequest.Description;
                 var ticketId = purgeRequest.TicketId;
                 var hostname = purgeRequest.Hostname;
+                var urls = ResolveUrls(hostname, purgeRequest.Urls);
                 log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}: purging {urls.Count} urls for partner {partnerId}");
 
                 var partner = await partnerTable.GetItem(partnerId);
@@ -86,7 +99,8 @@ namespace MultiCdnApi
                 }
 
                 await userRequestTable.UpsertItem(userRequest);
-
+                urlsToPurgeSubmitted.TrackValue(urls.Count);
+                outgoingRequestsForCdnPlugins.TrackValue(userRequest.NumTotalPartnerRequests);
                 return new StringResult(userRequestId); 
             }
             catch (Exception e)
@@ -95,16 +109,18 @@ namespace MultiCdnApi
             }
         }
 
-
         [FunctionName("CachePurgeRequestByHostnameStatus")]
         public async Task<IActionResult> CachePurgeRequestByHostnameStatus(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "{partnerId}/CachePurgeStatus/{userRequestId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId}/CachePurgeStatus/{userRequestId}")]
             HttpRequest req,
             string partnerId,
             string userRequestId,
             ILogger log)
         {
-            log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: {userRequestId} (partnerId={partnerId})");
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
+            log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: {userRequestId} (partnerId={partnerId});" +
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var userRequest = await userRequestTable.GetItem(userRequestId);
@@ -115,6 +131,35 @@ namespace MultiCdnApi
                 log.LogInformation($"{nameof(CachePurgeRequestByHostnameStatus)}: got exception {e.Message}; {e.StackTrace}");
                 return new ExceptionResult(e);
             }
+        }
+        
+        
+        private ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
+        {
+            var result = new HashSet<string>();
+            Uri parsedHostname = null;
+            if (!string.IsNullOrWhiteSpace(hostname))
+            {
+                parsedHostname = new Uri(hostname);
+            }
+            foreach (var purgeRequestUrl in purgeRequestUrls)
+            {
+                var parsedUrl = new Uri(purgeRequestUrl);
+                if (parsedUrl.IsAbsoluteUri)
+                {
+                    result.Add(purgeRequestUrl);
+                }
+                else
+                {
+                    if (parsedHostname == null)
+                    {
+                        throw new InvalidOperationException("Urls are not absolute, but the hostname is empty");
+                    }
+                    parsedUrl = new Uri(parsedHostname, purgeRequestUrl);
+                    result.Add(parsedUrl.ToString());
+                }
+            }
+            return result;
         }
     }
 }

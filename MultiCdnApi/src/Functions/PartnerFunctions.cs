@@ -16,11 +16,10 @@ namespace MultiCdnApi
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.Http;
     using Microsoft.Extensions.Logging;
+    using Swagger;
 
     public class PartnerFunctions
     {
-        private const string PartnerIdParameter = "partnerId";
-
         private readonly IRequestTable<Partner> partnerTable;
 
         public PartnerFunctions(IRequestTable<Partner> partnerTable)
@@ -30,18 +29,19 @@ namespace MultiCdnApi
         
         [FunctionName("GetPartner")]
         public async Task<IActionResult> GetPartner(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners/{partnerId:guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners/{partnerId:guid}")]
             HttpRequest req,
+            Guid partnerId,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
+            log.LogInformation($"{nameof(GetPartner)}; " +
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
-                if (req.Query.TryGetValue(PartnerIdParameter, out var id)) 
-                {
-                    var partner = await partnerTable.GetItem(id);
-                    return new PartnerResult(partner);
-                }
-                return new StringResult("Please pass in partnerId query parameter");
+                var partner = await partnerTable.GetItem(partnerId.ToString());
+                return new PartnerResult(partner);
             }
             catch (Exception e)
             {
@@ -49,16 +49,34 @@ namespace MultiCdnApi
             }
         }
         
+        [PostContent("CreatePartner", "Create new Partner",
+            @"{" + "\n"
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used in AFD API to purge caches" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used in AFD API to purge caches" + "\n"
+            + @"  ""ContactEmail"": ""contact@example.com"", // contact email" + "\n"
+            + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications" + "\n"
+            + @"  ""CdnConfiguration"": {" + "\n"
+            + @"     ""Hostname"": """"," + "\n"
+            + @"     ""CdnWithCredentials"": {" + "\n"
+            + @"        ""AFD"":"""", // Can be empty (default auth will be used)" + "\n"
+            + @"        ""Akamai"": """" // Can be empty (default auth will be used)" + "\n"
+            + @"     }" 
+            + @"  }" + "\n"
+            + @"}")]
         [FunctionName("CreatePartner")]
         public async Task<IActionResult> CreatePartner(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "partners")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "partners")]
             HttpRequest req,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
+            log.LogInformation($"{nameof(CreatePartner)}; " +
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var requestContent = await new StreamReader(req.Body).ReadToEndAsync();
-                var createPartnerRequest = JsonSerializer.Deserialize<PartnerConfigRequest>(requestContent);
+                var createPartnerRequest = JsonSerializer.Deserialize<PartnerConfigRequest>(requestContent, new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 
                 log.LogInformation($"{nameof(CreatePartner)}: {createPartnerRequest}");
 
@@ -79,10 +97,14 @@ namespace MultiCdnApi
 
         [FunctionName("ListPartners")]
         public async Task<IActionResult> ListPartners(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners")]
             HttpRequest req,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
+            log.LogInformation($"{nameof(ListPartners)}; " +
+                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
             try
             {
                 var partners = await partnerTable.GetItems();
