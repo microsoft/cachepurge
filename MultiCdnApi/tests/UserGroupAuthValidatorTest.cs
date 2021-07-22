@@ -7,6 +7,7 @@ namespace MultiCdnApi
     using Microsoft.AspNetCore.Http;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class UserGroupAuthValidatorTest
     {
         [TestMethod]
