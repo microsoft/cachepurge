@@ -3,7 +3,6 @@
 
 namespace MultiCdnApi
 {
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
@@ -107,6 +106,16 @@ namespace MultiCdnApi
         {
             req.HttpContext.VerifyUserHasAnyAcceptedScope("CachePurge");
             return new JsonResult("OK");
+        }
+        
+        [FunctionName("IsAuthorized")]
+        public IActionResult IsAuthorized(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/auth")]
+            HttpRequest req,
+            ILogger log)
+        {
+            var isUserAuthorized = UserGroupAuthValidator.IsUserAuthorized(req);
+            return new JsonResult("IsUserAuthorized: " + isUserAuthorized);
         }
 
         private static string SerializeClaim(Claim claim)

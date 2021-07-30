@@ -22,7 +22,7 @@ namespace MultiCdnApi
             }
         }
 
-        private static bool IsUserAuthorized(HttpRequest req)
+        public static bool IsUserAuthorized(HttpRequest req)
         {
             if (!EnvironmentConfig.AuthorizationEnabled) {
                 return true;
