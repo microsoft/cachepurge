@@ -33,10 +33,15 @@ namespace MultiCdnApi
         private const string TestHostname = "test_hostname";
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
+        
+        private bool authEnabledInConfig;
 
         [TestInitialize]
         public void Setup()
         {
+            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
+            EnvironmentConfig.AuthorizationEnabled = false;
+            
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(partners));
             partnerFunctions = new PartnerFunctions(partnerTable);
         }
@@ -160,6 +165,13 @@ namespace MultiCdnApi
             var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
                 Mock.Of<ILogger>());
             return createPartnerResponse.Result;
+        }
+        
+        [TestCleanup]
+        public void Teardown()
+        {
+            partnerTable.Dispose();
+            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }

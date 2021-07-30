@@ -38,10 +38,15 @@ namespace MultiCdnApi
         private readonly IDictionary<string, UserRequest> userRequestDict = new Dictionary<string, UserRequest>();
         private readonly IDictionary<string, AfdPartnerRequest> afdPartnerRequest = new Dictionary<string, AfdPartnerRequest>();
         private readonly IDictionary<string, AkamaiPartnerRequest> akamaiPartnerRequest = new Dictionary<string, AkamaiPartnerRequest>();
+        
+        private bool authEnabledInConfig;
 
         [TestInitialize]
         public void Setup()
         {
+            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
+            EnvironmentConfig.AuthorizationEnabled = false;
+
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(new Dictionary<string, Partner>()));
 
             userRequestTable = new UserRequestTable(CdnLibraryTestHelper.MockCosmosDbContainer(userRequestDict));
@@ -168,6 +173,7 @@ namespace MultiCdnApi
             partnerRequestTable.Dispose();
             partnerTable.Dispose();
             userRequestTable.Dispose();
+            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }

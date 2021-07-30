@@ -12,7 +12,7 @@ namespace MultiCdnApi
     /// https://github.com/Azure/azure-webjobs-sdk/wiki/Function-Filters -
     /// when they become a production feature.
     /// </summary>
-    public class UserGroupAuthValidator
+    public static class UserGroupAuthValidator
     {
         public static void CheckUserAuthorized(HttpRequest req)
         {
@@ -21,18 +21,19 @@ namespace MultiCdnApi
                 throw new AuthenticationFailedException("User is not authorized");
             }
         }
-        
-        public static bool IsUserAuthorized(HttpRequest req)
+
+        private static bool IsUserAuthorized(HttpRequest req)
         {
-            if (EnvironmentConfig.AuthorizationEnabled)
+            if (!EnvironmentConfig.AuthorizationEnabled) {
+                return true;
+            }
+
+            var roleClaims = req.HttpContext.User.FindAll("roles");
+            foreach (var roleClaim in roleClaims)
             {
-                var roleClaims = req.HttpContext.User.FindAll("roles");
-                foreach (var roleClaim in roleClaims)
+                if (EnvironmentConfig.AuthorizedGroup.Equals(roleClaim.Value))
                 {
-                    if (EnvironmentConfig.AuthorizedGroup.Equals(roleClaim.Value))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
