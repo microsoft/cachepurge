@@ -55,7 +55,7 @@ namespace MultiCdnApi
                  + @"}")]
         [FunctionName("CreateCachePurgeRequestByHostname")]
         public async Task<IActionResult> CreateCachePurgeRequestByHostname(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId:guid}/CachePurgeByHostname")]
             HttpRequest req,
             string partnerId,
             ILogger log)
@@ -111,7 +111,7 @@ namespace MultiCdnApi
 
         [FunctionName("CachePurgeRequestByHostnameStatus")]
         public async Task<IActionResult> CachePurgeRequestByHostnameStatus(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "{partnerId}/CachePurgeStatus/{userRequestId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{partnerId}/CachePurgeStatus/{userRequestId}")]
             HttpRequest req,
             string partnerId,
             string userRequestId,

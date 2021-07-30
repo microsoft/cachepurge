@@ -29,7 +29,7 @@ namespace MultiCdnApi
         
         [FunctionName("GetPartner")]
         public async Task<IActionResult> GetPartner(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners/{partnerId:guid}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners/{partnerId:guid}")]
             HttpRequest req,
             Guid partnerId,
             ILogger log)
@@ -65,7 +65,7 @@ namespace MultiCdnApi
             + @"}")]
         [FunctionName("CreatePartner")]
         public async Task<IActionResult> CreatePartner(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "partners")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "partners")]
             HttpRequest req,
             ILogger log)
         {
@@ -97,7 +97,7 @@ namespace MultiCdnApi
 
         [FunctionName("ListPartners")]
         public async Task<IActionResult> ListPartners(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partners")]
             HttpRequest req,
             ILogger log)
         {
