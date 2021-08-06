@@ -23,6 +23,8 @@ namespace MultiCdnApi
             [SwashBuckleClient] ISwashBuckleClient swashBuckleClient,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(request);
+
             log.LogInformation($"{nameof(SwaggerJson)}; " +
                                $"invoked by {request.HttpContext.User?.Identity?.Name}");
             return Task.FromResult(swashBuckleClient.CreateSwaggerDocumentResponse(requestMessage));
@@ -37,6 +39,8 @@ namespace MultiCdnApi
             [SwashBuckleClient] ISwashBuckleClient swashBuckleClient,
             ILogger log)
         {
+            UserGroupAuthValidator.CheckUserAuthorized(req);
+
             log.LogInformation($"{nameof(SwaggerUi)}; " +
                                $"invoked by {req.HttpContext.User?.Identity?.Name}");
             return Task.FromResult(swashBuckleClient.CreateSwaggerUIResponse(requestMessage, "swagger/json"));
