@@ -60,11 +60,11 @@ namespace MultiCdnApi
 
             const string testTenantName = TestTenantId;
             const string testPartnerName = TestPartnerId;
-            const string testContactEmail = "testDri@n/a.com";
-            const string testNotifyContactEmail = "testNotify@n/a.com";
-            const string rawCdnConfiguration = "{\"Hostname\": \"\", \"CdnWithCredentials\": {\"AFD\":\"\", \"Akamai\":\"\"}}";
+            // const string testContactEmail = "testDri@n/a.com";
+            // const string testNotifyContactEmail = "testNotify@n/a.com";
+            const string rawCdnConfiguration = "{\"Hostname\": \"\", \"PluginIsEnabled\": {\"AFD\": true, \"Akamai\": true}}";
 
-            var partner = new Partner(testTenantName, testPartnerName, testContactEmail, testNotifyContactEmail, new[] { new CdnConfiguration(rawCdnConfiguration) });
+            var partner = new Partner(testTenantName, testPartnerName, /*testContactEmail, testNotifyContactEmail, new[] {*/ new CdnConfiguration(rawCdnConfiguration) /*}*/);
             partnerTable.CreateItem(partner).Wait();
             testPartnerId = partner.id;
         }
@@ -123,6 +123,15 @@ namespace MultiCdnApi
             Assert.AreEqual(0, userRequestStatusValue.NumCompletedPartnerRequests); // 0 because it is not initialized in plugins yet 
         }
 
+        [TestMethod]
+        public async Task TestCachePurgeStatus_WrongRequestId()
+        {
+            var statusResult = await CallPurgeStatus("MalformedRequestId");
+            Assert.AreEqual(typeof(JsonResult), statusResult.GetType());
+            Assert.IsNotNull(statusResult.Value, nameof(statusResult.Value) + " == null");
+            Assert.IsTrue(statusResult.Value.ToString().Contains("not found"));
+        }
+
         private static void AssertIsTestRequest(IPartnerRequest partnerRequest)
         {
             var afdPartnerRequest = partnerRequest as AfdPartnerRequest;
@@ -154,7 +163,7 @@ namespace MultiCdnApi
             return (string) ((StringResult) result).Value;
         }
 
-        private async Task<UserRequestStatusResult> CallPurgeStatus(string userRequestId)
+        private async Task<JsonResult> CallPurgeStatus(string userRequestId)
         {
             var emptyRequest = new DefaultHttpContext().Request;
             var statusResponse = await cacheFunctions.CachePurgeRequestByHostnameStatus(
@@ -162,8 +171,8 @@ namespace MultiCdnApi
                 testPartnerId,
                 userRequestId,
                 Mock.Of<ILogger>());
-            Assert.AreEqual(typeof(UserRequestStatusResult), statusResponse.GetType());
-            var userRequestStatusResult = (UserRequestStatusResult) statusResponse;
+            Assert.IsTrue(statusResponse is JsonResult);
+            var userRequestStatusResult = (JsonResult) statusResponse;
             return userRequestStatusResult;
         }
 

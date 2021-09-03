@@ -13,30 +13,30 @@ namespace MultiCdnApi
     {
         public PartnerResult(Partner partner) : base(new object())
         {
-            var cdnConfigurationResults = new List<CdnConfigurationValue>();
-            var partnerCdnConfigurations = partner.CdnConfigurations;
-            foreach (var cdnConfiguration in partnerCdnConfigurations)
-            {
-                var credentials = new Dictionary<string, string>();
-                foreach (var cdnConfigurationCredentialKey in cdnConfiguration.CdnWithCredentials.Keys)
-                {
-                    credentials[cdnConfigurationCredentialKey] = string.Empty;
-                }
+            var cdnConfiguration = partner.CdnConfiguration;
+            // foreach (var cdnConfiguration in partnerCdnConfiguration)
+            // {
+                // var credentials = new Dictionary<string, string>();
+                // foreach (var cdnConfigurationCredentialKey in cdnConfiguration.CdnWithCredentials.Keys)
+                // {
+                //     credentials[cdnConfigurationCredentialKey] = string.Empty;
+                // }
                 
-                cdnConfigurationResults.Add(new CdnConfigurationValue
+            var cdnConfigurationValue = new CdnConfigurationValue
                 {
                     Hostname = cdnConfiguration.Hostname,
-                    CdnCredentials = credentials 
-                });
-            }
+                    PluginIsEnabled = cdnConfiguration.PluginIsEnabled
+                    // CdnCredentials = credentials
+                };
+            // }
             Value = new PartnerValue
             {
                 Id = partner.id,
                 TenantId = partner.TenantId,
                 Name = partner.Name,
-                ContactEmail = partner.ContactEmail,
-                NotifyContactEmail = partner.NotifyContactEmail,
-                CdnConfigurations = cdnConfigurationResults
+                // ContactEmail = partner.ContactEmail,
+                // NotifyContactEmail = partner.NotifyContactEmail,
+                CdnConfiguration = cdnConfigurationValue
             };
         }
     }
@@ -46,14 +46,15 @@ namespace MultiCdnApi
         public string Id { get; set; }
         public string TenantId { get; set; }
         public string Name { get; set; }
-        public string ContactEmail { get; set; }
-        public string NotifyContactEmail { get; set; }
-        public List<CdnConfigurationValue> CdnConfigurations { get; set; }
+        // public string ContactEmail { get; set; }
+        // public string NotifyContactEmail { get; set; }
+        public CdnConfigurationValue CdnConfiguration { get; set; }
     }
 
     public class CdnConfigurationValue
     {
         public string Hostname { get; set; }
-        public IDictionary<string, string> CdnCredentials { get; set; }
+        public IDictionary<string, bool> PluginIsEnabled { get; set; }
+        // public IDictionary<string, string> CdnCredentials { get; set; }
     }  
 }

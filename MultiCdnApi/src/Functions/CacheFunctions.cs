@@ -76,27 +76,37 @@ namespace MultiCdnApi
                     new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 var description = purgeRequest.Description;
                 var ticketId = purgeRequest.TicketId;
+
+                var partner = await partnerTable.GetItem(partnerId);
+
                 var hostname = purgeRequest.Hostname;
+                if (hostname == "")
+                {
+                    hostname = partner.Hostname;
+                }
                 var urls = ResolveUrls(hostname, purgeRequest.Urls);
                 log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}: purging {urls.Count} urls for partner {partnerId}");
 
-                var partner = await partnerTable.GetItem(partnerId);
                 var userRequest = new UserRequest(partner.id, description, ticketId, hostname, urls);
 
                 await userRequestTable.CreateItem(userRequest);
                 var userRequestId = userRequest.id;
 
-                foreach (var partnerCdnConfiguration in partner.CdnConfigurations)
+                // foreach (var partnerCdnConfiguration in partner.CdnConfigurations)
+                // {
+                var pluginIsEnabled = partner.CdnConfiguration.PluginIsEnabled;
+                foreach (var (pluginName, isCdnEnabled) in pluginIsEnabled)
                 {
-                    var cdnWithCredentials = partnerCdnConfiguration.CdnWithCredentials;
-                    foreach (var cdnWithCredential in cdnWithCredentials)
+                    var cdn = Enum.Parse<CDN>(pluginName);
+                    if (isCdnEnabled)
                     {
-                        var cdn = Enum.Parse<CDN>(cdnWithCredential.Key);
                         var partnerRequest = CdnRequestHelper.CreatePartnerRequest(cdn, partner, userRequest, description, ticketId);
                         await partnerRequestTable.CreatePartnerRequest(partnerRequest, cdn);
                         userRequest.NumTotalPartnerRequests++;
+                        userRequest.PluginStatuses[pluginName] = RequestStatus.PurgeSubmitted.ToString();
                     }
                 }
+                // }
 
                 await userRequestTable.UpsertItem(userRequest);
                 urlsToPurgeSubmitted.TrackValue(urls.Count);
@@ -124,7 +134,11 @@ namespace MultiCdnApi
             try
             {
                 var userRequest = await userRequestTable.GetItem(userRequestId);
-                return new UserRequestStatusResult(userRequest);
+                if (userRequest != null)
+                {
+                    return new UserRequestStatusResult(userRequest);
+                }
+                return new JsonResult("Request with requestId " + userRequestId + "not found");
             }
             catch (Exception e)
             {
@@ -134,7 +148,7 @@ namespace MultiCdnApi
         }
         
         
-        private ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
+        private static ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
         {
             var result = new HashSet<string>();
             Uri parsedHostname = null;

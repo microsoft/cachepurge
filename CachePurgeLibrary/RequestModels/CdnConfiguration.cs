@@ -11,24 +11,29 @@ namespace CachePurgeLibrary
     public class CdnConfiguration
     {
         public string Hostname { get; set; }
+        
+        public IDictionary<string, bool> PluginIsEnabled { get; set; }
 
-        public IDictionary<string, string> CdnWithCredentials { get; set; }
+        // Credentials are not used for now anyway
+        // public IDictionary<string, string> CdnWithCredentials { get; set; }
 
         public CdnConfiguration()
         {
-            CdnWithCredentials = new Dictionary<string, string>();
+            // CdnWithCredentials = new Dictionary<string, string>();
+            PluginIsEnabled = new Dictionary<string, bool>();
         }
         
         public CdnConfiguration(string rawCdnConfiguration)
         {
             var cdnConfiguration = JsonSerializer.Deserialize<CdnConfiguration>(rawCdnConfiguration);
             Hostname = cdnConfiguration.Hostname;
-            CdnWithCredentials = cdnConfiguration.CdnWithCredentials;
+            // CdnWithCredentials = cdnConfiguration.CdnWithCredentials;
+            PluginIsEnabled = cdnConfiguration.PluginIsEnabled;
         }
 
         public override string ToString()
         {
-            return $"{nameof(Hostname)}: {Hostname}, {nameof(CdnWithCredentials)}: <skipping credentials...>";
+            return $"{nameof(Hostname)}: {Hostname}, "; // {nameof(CdnWithCredentials)}: <skipping credentials...>";
         }
     }
 }

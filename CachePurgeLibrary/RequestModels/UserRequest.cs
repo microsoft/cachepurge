@@ -36,5 +36,7 @@ namespace CachePurgeLibrary
         public int NumTotalPartnerRequests { get; set; }
 
         public int NumCompletedPartnerRequests { get; set; }
+
+        public IDictionary<string, string> PluginStatuses { get; } = new Dictionary<string, string>();
     }
 }

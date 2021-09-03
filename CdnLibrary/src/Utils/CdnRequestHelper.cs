@@ -34,7 +34,7 @@ namespace CdnLibrary
             partnerRequest.id = Guid.NewGuid().ToString();
             partnerRequest.CDN = cdn.ToString();
             partnerRequest.Urls = userRequest.Urls;
-            partnerRequest.UserRequestID = userRequest.id.ToString();
+            partnerRequest.UserRequestID = userRequest.id;
 
             return partnerRequest;
         }

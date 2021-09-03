@@ -28,8 +28,8 @@ namespace MultiCdnApi
 
         private const string TenantId = "FakeTenant";
         private const string Name = "FakePartner";
-        private const string DriContact = "driContact@example.test";
-        private const string NotifyContact = "notifyContact@example.test";
+        // private const string DriContact = "driContact@example.test";
+        // private const string NotifyContact = "notifyContact@example.test";
         private const string TestHostname = "test_hostname";
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
@@ -74,15 +74,15 @@ namespace MultiCdnApi
         {
             Assert.AreEqual(TenantId, partner.TenantId);
             Assert.AreEqual(Name, partner.Name);
-            Assert.AreEqual(DriContact, partner.ContactEmail);
-            Assert.AreEqual(NotifyContact, partner.NotifyContactEmail);
-            var partnerCdnConfigurations = partner.CdnConfigurations.ToList();
-            Assert.AreEqual(1, partnerCdnConfigurations.Count);
-            Assert.AreEqual(TestHostname, partnerCdnConfigurations[0].Hostname);
-            var cdnWithCredentials = partnerCdnConfigurations[0].CdnWithCredentials;
-            Assert.AreEqual(2, cdnWithCredentials.Count);
-            Assert.AreEqual("", cdnWithCredentials[CDN.AFD.ToString()]);
-            Assert.AreEqual("", cdnWithCredentials[CDN.Akamai.ToString()]);
+            // Assert.AreEqual(DriContact, partner.ContactEmail);
+            // Assert.AreEqual(NotifyContact, partner.NotifyContactEmail);
+            var partnerCdnConfiguration = partner.CdnConfiguration;
+            // Assert.AreEqual(1, partnerCdnConfigurations.Count);
+            Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
+            // var cdnWithCredentials = partnerCdnConfiguration.CdnWithCredentials;
+            // Assert.AreEqual(2, cdnWithCredentials.Count);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
 
 
@@ -93,15 +93,13 @@ namespace MultiCdnApi
             var partnerValue = (PartnerValue) partner.Value;
             Assert.AreEqual(TenantId, partnerValue.TenantId);
             Assert.AreEqual(Name, partnerValue.Name);
-            Assert.AreEqual(DriContact, partnerValue.ContactEmail);
-            Assert.AreEqual(NotifyContact, partnerValue.NotifyContactEmail);
-            var partnerCdnConfigurations = partnerValue.CdnConfigurations.ToList();
-            Assert.AreEqual(1, partnerCdnConfigurations.Count);
-            Assert.AreEqual(TestHostname, partnerCdnConfigurations[0].Hostname);
-            var cdnWithCredentials = partnerCdnConfigurations[0].CdnCredentials;
-            Assert.AreEqual(2, cdnWithCredentials.Count);
-            Assert.AreEqual("", cdnWithCredentials[CDN.AFD.ToString()]);
-            Assert.AreEqual("", cdnWithCredentials[CDN.Akamai.ToString()]);
+            // Assert.AreEqual(DriContact, partnerValue.ContactEmail);
+            // Assert.AreEqual(NotifyContact, partnerValue.NotifyContactEmail);
+            var partnerCdnConfiguration = partnerValue.CdnConfiguration;
+            // Assert.AreEqual(1, partnerCdnConfiguration.Count);
+            Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
 
         [TestMethod]
@@ -129,7 +127,8 @@ namespace MultiCdnApi
             var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, 
                 Mock.Of<ILogger>()).Result;
 
-            Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(JsonResult), partnerResult.GetType());
+            Assert.IsTrue(((JsonResult)partnerResult).Value.ToString().Contains("not found"));
         }
 
         [TestMethod]
@@ -157,9 +156,7 @@ namespace MultiCdnApi
             createPartnerRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
                                                                               $@"""Tenant"": ""{TenantId}""," +
                                                                               $@"""Name"": ""{Name}""," +
-                                                                              $@"""ContactEmail"": ""{DriContact}""," +
-                                                                              $@"""NotifyContactEmail"": ""{NotifyContact}""," +
-                                                                              $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
+                                                                              $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""PluginIsEnabled"": {{""AFD"": true, ""Akamai"": true}}}}" +
                                                                               "}"));
 
             var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 

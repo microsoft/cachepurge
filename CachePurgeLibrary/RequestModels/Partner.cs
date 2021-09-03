@@ -6,7 +6,6 @@
 namespace CachePurgeLibrary
 {
     using System;
-    using System.Collections.Generic;
 
     public class Partner : CosmosDbEntity
     {
@@ -14,21 +13,22 @@ namespace CachePurgeLibrary
 
         public string Name { get; set; }
 
-        public string ContactEmail { get; set; }
+        // public string ContactEmail { get; set; }
+        //
+        // public string NotifyContactEmail { get; set; }
 
-        public string NotifyContactEmail { get; set; }
+        public CdnConfiguration CdnConfiguration { get; set; }
+        public string Hostname { get; set; }
 
-        public IEnumerable<CdnConfiguration> CdnConfigurations { get; set; }
-
-        public Partner(string tenant, string name, string contactEmail, string notifyContactEmail,
-            CdnConfiguration[] cdnConfigurations)
+        public Partner(string tenant, string name, /*string contactEmail, string notifyContactEmail,*/
+            CdnConfiguration cdnConfiguration)
         {
             id = Guid.NewGuid().ToString();
             Name = name;
             TenantId = tenant;
-            ContactEmail = contactEmail;
-            NotifyContactEmail = notifyContactEmail;
-            CdnConfigurations = cdnConfigurations;
+            // ContactEmail = contactEmail;
+            // NotifyContactEmail = notifyContactEmail;
+            CdnConfiguration = cdnConfiguration;
         }
     }
 }
