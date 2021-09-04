@@ -6,6 +6,7 @@ namespace MultiCdnApi
     using CdnLibrary;
     using Microsoft.AspNetCore.Http;
     using Azure.Identity;
+    using Microsoft.Azure.WebJobs.Extensions.Http;
 
     /// <summary>
     /// Note: can potentially be replaced by Azure Function Filters -
@@ -35,6 +36,13 @@ namespace MultiCdnApi
                 {
                     return true;
                 }
+            }
+            if (!string.IsNullOrWhiteSpace(EnvironmentConfig.AzureFunctionsAccessKey) 
+                && (req.Query.ContainsKey("code") || req.Headers.ContainsKey("x-functions-key"))
+                && (EnvironmentConfig.AzureFunctionsAccessKey.Equals(req.Query["code"]) 
+                    || EnvironmentConfig.AzureFunctionsAccessKey.Equals(req.Headers["x-functions-key"])))
+            {
+                return true;
             }
             return false;
         }

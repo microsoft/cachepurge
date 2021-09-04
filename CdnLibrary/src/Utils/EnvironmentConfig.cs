@@ -54,6 +54,7 @@ namespace CdnLibrary
                 : true;
 
         
-        public static string AuthorizedGroup = Environment.GetEnvironmentVariable("AuthorizedGroup");
+        public static readonly string AuthorizedGroup = Environment.GetEnvironmentVariable("AuthorizedGroup");
+        public static readonly string AzureFunctionsAccessKey = Environment.GetEnvironmentVariable("AzureFunctionsAccessKey");
     }
 }
