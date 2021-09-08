@@ -7,6 +7,7 @@ namespace MultiCdnApi
 {
     using System.Collections.Generic;
     using CachePurgeLibrary;
+    using CdnLibrary;
     using Microsoft.AspNetCore.Mvc;
 
     public class PartnerResult : JsonResult
@@ -21,12 +22,22 @@ namespace MultiCdnApi
                 // {
                 //     credentials[cdnConfigurationCredentialKey] = string.Empty;
                 // }
-                
-            var cdnConfigurationValue = new CdnConfigurationValue
+                IDictionary<string, bool> pluginIsEnabled;
+                if (cdnConfiguration.PluginIsEnabled == null)
+                { // handling old data while it's not updated yet
+                    pluginIsEnabled = new Dictionary<string, bool> {
+                        { CDN.AFD.ToString() , true},
+                        { CDN.Akamai.ToString() , true},
+                    };
+                }
+                else
                 {
+                    pluginIsEnabled = cdnConfiguration.PluginIsEnabled;
+                }
+
+                var cdnConfigurationValue = new CdnConfigurationValue {
                     Hostname = cdnConfiguration.Hostname,
-                    PluginIsEnabled = cdnConfiguration.PluginIsEnabled
-                    // CdnCredentials = credentials
+                    PluginIsEnabled = pluginIsEnabled
                 };
             // }
             Value = new PartnerValue

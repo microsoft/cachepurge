@@ -3,6 +3,7 @@
 
 namespace MultiCdnApi
 {
+    using System.Linq;
     using CdnLibrary;
     using Microsoft.AspNetCore.Http;
     using Azure.Identity;
@@ -29,10 +30,10 @@ namespace MultiCdnApi
                 return true;
             }
 
-            var roleClaims = req.HttpContext.User.FindAll("roles");
-            foreach (var roleClaim in roleClaims)
+            var roleClaims = req.HttpContext?.User?.FindAll("roles");
+            if (roleClaims != null)
             {
-                if (EnvironmentConfig.AuthorizedGroup.Equals(roleClaim.Value))
+                if (roleClaims.Any(roleClaim => EnvironmentConfig.AuthorizedGroup.Equals(roleClaim.Value)))
                 {
                     return true;
                 }

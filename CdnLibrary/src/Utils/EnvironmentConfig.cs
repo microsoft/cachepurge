@@ -26,6 +26,8 @@ namespace CdnLibrary
 
         internal const string CosmosDBConnection = "CosmosDBConnection";
 
+        public const string AuthorizationEnabledEnvironmentVariable = "AuthorizationEnabled";
+
         public static string CosmosDBConnectionString => Environment.GetEnvironmentVariable(CosmosDBConnection) ?? throw new InvalidOperationException();
 
         public static string CosmosDatabaseId => Environment.GetEnvironmentVariable("CosmosDatabaseId") ?? "CacheOut";
@@ -48,12 +50,19 @@ namespace CdnLibrary
 
         public static int AkamaiBatchSize = (Environment.GetEnvironmentVariable("Akamai_UrlBatchSize")) != null ? Convert.ToInt32(Environment.GetEnvironmentVariable("Akamai_UrlBatchSize")) : 200;
 
-        public static bool AuthorizationEnabled =
-            Environment.GetEnvironmentVariable("AuthorizationEnabled") != null
-                ? bool.Parse(Environment.GetEnvironmentVariable("AuthorizationEnabled"))
-                : true;
+        private static bool authorizationEnabled;
+        public static bool AuthorizationEnabled {
+            get {
+                authorizationEnabled =
+                    Environment.GetEnvironmentVariable(AuthorizationEnabledEnvironmentVariable) != null
+                        ? bool.Parse(Environment.GetEnvironmentVariable(AuthorizationEnabledEnvironmentVariable))
+                        : true;
+                return authorizationEnabled;
+            }
+            set => authorizationEnabled = value;
+        }
 
-        
+
         public static readonly string AuthorizedGroup = Environment.GetEnvironmentVariable("AuthorizedGroup");
         public static readonly string AzureFunctionsAccessKey = Environment.GetEnvironmentVariable("AzureFunctionsAccessKey");
     }

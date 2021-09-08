@@ -21,7 +21,7 @@ namespace MultiCdnApi
     using Moq;
 
     [TestClass]
-    public class PartnersFunctions_Test
+    public class PartnersFunctions_Test : GenericCachePurge_Test
     {
         private PartnerFunctions partnerFunctions;
         private IRequestTable<Partner> partnerTable;
@@ -34,14 +34,9 @@ namespace MultiCdnApi
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
         
-        private bool authEnabledInConfig;
-
         [TestInitialize]
         public void Setup()
         {
-            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
-            EnvironmentConfig.AuthorizationEnabled = false;
-            
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(partners));
             partnerFunctions = new PartnerFunctions(partnerTable);
         }
@@ -168,7 +163,6 @@ namespace MultiCdnApi
         public void Teardown()
         {
             partnerTable.Dispose();
-            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }

@@ -106,7 +106,7 @@ namespace MultiCdnApi
             UserGroupAuthValidator.CheckUserAuthorized(req);
 
             log.LogInformation($"{nameof(ListPartners)}; " +
-                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
+                               $"invoked by {req.HttpContext?.User?.Identity?.Name}");
             try
             {
                 var partners = await partnerTable.GetItems();
