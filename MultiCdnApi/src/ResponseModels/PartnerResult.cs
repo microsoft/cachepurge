@@ -23,7 +23,7 @@ namespace MultiCdnApi
                 //     credentials[cdnConfigurationCredentialKey] = string.Empty;
                 // }
                 IDictionary<string, bool> pluginIsEnabled;
-                if (cdnConfiguration.PluginIsEnabled == null)
+                if (cdnConfiguration == null || cdnConfiguration.PluginIsEnabled == null)
                 { // handling old data while it's not updated yet
                     pluginIsEnabled = new Dictionary<string, bool> {
                         { CDN.AFD.ToString() , true},
@@ -36,7 +36,7 @@ namespace MultiCdnApi
                 }
 
                 var cdnConfigurationValue = new CdnConfigurationValue {
-                    Hostname = cdnConfiguration.Hostname,
+                    Hostname = cdnConfiguration?.Hostname ?? "",
                     PluginIsEnabled = pluginIsEnabled
                 };
             // }

@@ -20,6 +20,13 @@ namespace MultiCdnApi
             Assert.AreEqual(2, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled.Count);
             Assert.AreEqual(true, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
             Assert.AreEqual(true, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
+
+            partner.CdnConfiguration = null;
+            partnerResult = new PartnerResult(partner);
+            Assert.AreEqual("", ((PartnerValue)partnerResult.Value).CdnConfiguration.Hostname);
+            Assert.AreEqual(2, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled.Count);
+            Assert.AreEqual(true, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
+            Assert.AreEqual(true, ((PartnerValue)partnerResult.Value).CdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
         }
     }
 }
