@@ -84,8 +84,16 @@ namespace MultiCdnApi
         
         private static void TestPartnerSerialization(JsonResult partner)
         {
-            Assert.AreEqual(typeof(PartnerValue), partner.Value.GetType());
-            var partnerValue = (PartnerValue) partner.Value;
+            Partner partnerValue;
+            if (partner.Value.GetType() == typeof(Partner[]))
+            {
+                Assert.AreEqual(1, ((Partner[])partner.Value).Length);
+                partnerValue = ((Partner[]) partner.Value)[0];
+            }
+            else
+            {
+                partnerValue = (Partner)partner.Value;
+            }
             Assert.AreEqual(TenantId, partnerValue.TenantId);
             Assert.AreEqual(Name, partnerValue.Name);
             // Assert.AreEqual(DriContact, partnerValue.ContactEmail);
@@ -110,9 +118,9 @@ namespace MultiCdnApi
             var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), 
                 Mock.Of<ILogger>()).Result;
 
-            Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(JsonResult), partnerResult.GetType());
 
-            var partner = (PartnerResult) partnerResult;
+            var partner = (JsonResult) partnerResult;
             TestPartnerSerialization(partner);
         }
 
@@ -134,15 +142,15 @@ namespace MultiCdnApi
             var partnersResponse =
                 partnerFunctions.ListPartners(new DefaultHttpContext().Request, 
                     Mock.Of<ILogger>()).Result;
-            Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
-            var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
+            Assert.AreEqual(typeof(JsonResult), partnersResponse.GetType());
+            var partnersValue = ((JsonResult) partnersResponse).Value;
 
-            var retrievedPartners = partnersValue as IEnumerable<PartnerResult>;
+            var retrievedPartners = partnersValue as Partner[];
             Assert.IsNotNull(retrievedPartners);
             var retrievedPartnersList = retrievedPartners.ToList();
 
             Assert.AreEqual(1, retrievedPartnersList.Count);
-            TestPartnerSerialization(retrievedPartnersList.First());
+            TestPartnerSerialization((JsonResult)partnersResponse);
         }
 
         private IActionResult CreateTestPartner()

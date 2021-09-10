@@ -9,6 +9,7 @@ namespace MultiCdnApi
     using CdnLibrary;
     using CdnPlugin;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
@@ -39,18 +40,18 @@ namespace MultiCdnApi
         {
             var response 
                 = partnerFunctionsWithLocalStorage.ListPartners(Mock.Of<HttpRequest>(), Mock.Of<ILogger>()).Result;
-            Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), response.GetType());
-            var partners = (EnumerableResult<PartnerResult>) response;
-            Assert.AreEqual(typeof(List<PartnerResult>), partners.Value.GetType());
-            var partnerResults = (List<PartnerResult>) partners.Value;
-            Assert.AreEqual(2, partnerResults.Count);
-            Assert.AreEqual(typeof(PartnerValue), partnerResults[0].Value.GetType());
-            Assert.AreEqual(typeof(PartnerValue), partnerResults[1].Value.GetType());
+            Assert.AreEqual(typeof(JsonResult), response.GetType());
+            var partners = (JsonResult) response;
+            Assert.AreEqual(typeof(Partner[]), partners.Value.GetType());
+            var partnerResults = (Partner[]) partners.Value;
+            Assert.AreEqual(2, partnerResults.Length);
+            Assert.AreEqual(typeof(Partner), partnerResults[0].GetType());
+            Assert.AreEqual(typeof(Partner), partnerResults[1].GetType());
 
-            AssertIsValidPartner((PartnerValue) partnerResults[0].Value, "Bing", "Bing_StaticAssets");
+            AssertIsValidPartner(partnerResults[0], "Bing", "Bing_StaticAssets");
         }
 
-        private static void AssertIsValidPartner(PartnerValue partnerValue, string tenantId, string name, string hostname = "")
+        private static void AssertIsValidPartner(Partner partnerValue, string tenantId, string name, string hostname = "")
         {
             Assert.AreEqual(tenantId, partnerValue.TenantId);
             Assert.AreEqual(name, partnerValue.Name);

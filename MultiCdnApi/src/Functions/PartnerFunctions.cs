@@ -43,7 +43,7 @@ namespace MultiCdnApi
                 var partner = await partnerTable.GetItem(partnerId.ToString());
                 if (partner != null)
                 {
-                    return new PartnerResult(partner);
+                    return new JsonResult(partner);
                 }
                 return new JsonResult("Partner with partnerId " + partnerId + " not found");
             }
