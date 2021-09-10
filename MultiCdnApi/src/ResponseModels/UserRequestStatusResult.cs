@@ -5,6 +5,8 @@
 
 namespace MultiCdnApi
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using CachePurgeLibrary;
     using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +18,8 @@ namespace MultiCdnApi
             {
                 Id = userRequest.id, 
                 NumCompletedPartnerRequests = userRequest.NumCompletedPartnerRequests, 
-                NumTotalPartnerRequests = userRequest.NumTotalPartnerRequests
+                NumTotalPartnerRequests = userRequest.NumTotalPartnerRequests,
+                PluginStatuses = userRequest.PluginStatuses
             };
         }
     }
@@ -26,5 +29,6 @@ namespace MultiCdnApi
         public string Id { get; set; }
         public int NumCompletedPartnerRequests { get; set; }
         public int NumTotalPartnerRequests { get; set; }
+        public IDictionary<string, string> PluginStatuses { get; set; }
     }
 }
