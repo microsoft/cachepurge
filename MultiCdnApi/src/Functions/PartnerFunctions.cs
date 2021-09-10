@@ -110,7 +110,7 @@ namespace MultiCdnApi
             try
             {
                 var partners = await partnerTable.GetItems();
-                return new EnumerableResult<PartnerResult>(partners.Select(p => new PartnerResult(p)).ToList());
+                return new JsonResult(partners.ToArray());
             }
             catch (Exception e)
             {
