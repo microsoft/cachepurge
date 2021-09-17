@@ -6,7 +6,6 @@
 namespace MultiCdnApi
 {
     using System.Collections.Generic;
-    using System.Linq;
     using CachePurgeLibrary;
     using Microsoft.AspNetCore.Mvc;
 
