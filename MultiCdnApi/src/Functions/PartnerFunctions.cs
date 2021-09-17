@@ -84,10 +84,8 @@ namespace MultiCdnApi
 
                 var tenant = createPartnerRequest.Tenant;
                 var name = createPartnerRequest.Name;
-                // var contactEmail = createPartnerRequest.ContactEmail;
-                // var notifyContactEmail = createPartnerRequest.NotifyContactEmail;
                 var cdnConfiguration = createPartnerRequest.CdnConfiguration;
-                var partner = new Partner(tenant, name, /*contactEmail, notifyContactEmail,*/ /*new[] {*/ cdnConfiguration /*}*/);
+                var partner = new Partner(tenant, name, cdnConfiguration);
                 await partnerTable.CreateItem(partner);
                 return new StringResult(partner.id);
             }

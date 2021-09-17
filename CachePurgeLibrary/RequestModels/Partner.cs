@@ -13,21 +13,15 @@ namespace CachePurgeLibrary
 
         public string Name { get; set; }
 
-        // public string ContactEmail { get; set; }
-        //
-        // public string NotifyContactEmail { get; set; }
-
         public CdnConfiguration CdnConfiguration { get; set; }
         public string Hostname { get; set; }
 
-        public Partner(string tenant, string name, /*string contactEmail, string notifyContactEmail,*/
+        public Partner(string tenant, string name,
             CdnConfiguration cdnConfiguration)
         {
             id = Guid.NewGuid().ToString();
             Name = name;
             TenantId = tenant;
-            // ContactEmail = contactEmail;
-            // NotifyContactEmail = notifyContactEmail;
             CdnConfiguration = cdnConfiguration;
         }
     }

@@ -55,11 +55,9 @@ namespace MultiCdnApi
 
             const string testTenantName = TestTenantId;
             const string testPartnerName = TestPartnerId;
-            // const string testContactEmail = "testDri@n/a.com";
-            // const string testNotifyContactEmail = "testNotify@n/a.com";
             const string rawCdnConfiguration = "{\"Hostname\": \"\", \"PluginIsEnabled\": {\"AFD\": true, \"Akamai\": true}}";
 
-            var partner = new Partner(testTenantName, testPartnerName, /*testContactEmail, testNotifyContactEmail, new[] {*/ new CdnConfiguration(rawCdnConfiguration) /*}*/);
+            var partner = new Partner(testTenantName, testPartnerName, new CdnConfiguration(rawCdnConfiguration));
             partnerTable.CreateItem(partner).Wait();
             testPartnerId = partner.id;
         }

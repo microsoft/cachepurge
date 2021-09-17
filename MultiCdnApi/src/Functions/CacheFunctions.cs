@@ -92,8 +92,6 @@ namespace MultiCdnApi
                 await userRequestTable.CreateItem(userRequest);
                 var userRequestId = userRequest.id;
 
-                // foreach (var partnerCdnConfiguration in partner.CdnConfigurations)
-                // {
                 var pluginIsEnabled = partner.CdnConfiguration.PluginIsEnabled;
                 foreach (var (pluginName, isCdnEnabled) in pluginIsEnabled)
                 {
@@ -106,7 +104,6 @@ namespace MultiCdnApi
                         userRequest.PluginStatuses[pluginName] = RequestStatus.PurgeSubmitted.ToString();
                     }
                 }
-                // }
 
                 await userRequestTable.UpsertItem(userRequest);
                 urlsToPurgeSubmitted.TrackValue(urls.Count);

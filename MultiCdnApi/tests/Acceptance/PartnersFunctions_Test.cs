@@ -28,8 +28,6 @@ namespace MultiCdnApi
 
         private const string TenantId = "FakeTenant";
         private const string Name = "FakePartner";
-        // private const string DriContact = "driContact@example.test";
-        // private const string NotifyContact = "notifyContact@example.test";
         private const string TestHostname = "test_hostname";
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
@@ -69,13 +67,8 @@ namespace MultiCdnApi
         {
             Assert.AreEqual(TenantId, partner.TenantId);
             Assert.AreEqual(Name, partner.Name);
-            // Assert.AreEqual(DriContact, partner.ContactEmail);
-            // Assert.AreEqual(NotifyContact, partner.NotifyContactEmail);
             var partnerCdnConfiguration = partner.CdnConfiguration;
-            // Assert.AreEqual(1, partnerCdnConfigurations.Count);
             Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
-            // var cdnWithCredentials = partnerCdnConfiguration.CdnWithCredentials;
-            // Assert.AreEqual(2, cdnWithCredentials.Count);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
@@ -96,10 +89,7 @@ namespace MultiCdnApi
             }
             Assert.AreEqual(TenantId, partnerValue.TenantId);
             Assert.AreEqual(Name, partnerValue.Name);
-            // Assert.AreEqual(DriContact, partnerValue.ContactEmail);
-            // Assert.AreEqual(NotifyContact, partnerValue.NotifyContactEmail);
             var partnerCdnConfiguration = partnerValue.CdnConfiguration;
-            // Assert.AreEqual(1, partnerCdnConfiguration.Count);
             Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
