@@ -28,9 +28,10 @@ namespace MultiCdnApi
                 .Returns(Task.FromResult<IEnumerable<Partner>>(new List<Partner> {
                     new Partner("Bing", 
                         "Bing_StaticAssets", 
-                        new CdnConfiguration(@"{ ""Hostname"": """", ""PluginIsEnabled"": { ""AFD"": true, ""Akamai"": true } }")),
-                    new Partner("Bing", "Bing_Thumbnails", new CdnConfiguration(@"{""Hostname"": """", 
-                                ""CdnWithCredentials"": { ""AFD"": """", ""Akamai"": """" } }"))
+                        "",
+                        new CdnConfiguration(@"{ ""PluginIsEnabled"": { ""AFD"": true, ""Akamai"": true } }")),
+                    new Partner("Bing", "Bing_Thumbnails", "", 
+                        new CdnConfiguration(@"{""Hostname"": """", ""CdnWithCredentials"": { ""AFD"": """", ""Akamai"": """" } }"))
                 }));
             partnerFunctionsWithLocalStorage = new PartnerFunctions(partnerTable.Object);
         }
@@ -55,7 +56,7 @@ namespace MultiCdnApi
         {
             Assert.AreEqual(tenantId, partnerValue.TenantId);
             Assert.AreEqual(name, partnerValue.Name);
-            Assert.AreEqual(hostname, partnerValue.CdnConfiguration.Hostname);
+            Assert.AreEqual(hostname, partnerValue.Hostname);
             Assert.AreEqual(2, partnerValue.CdnConfiguration.PluginIsEnabled.Count);
             Assert.AreEqual(true, partnerValue.CdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
             Assert.AreEqual(true, partnerValue.CdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);

@@ -67,8 +67,8 @@ namespace MultiCdnApi
         {
             Assert.AreEqual(TenantId, partner.TenantId);
             Assert.AreEqual(Name, partner.Name);
+            Assert.AreEqual(TestHostname, partner.Hostname);
             var partnerCdnConfiguration = partner.CdnConfiguration;
-            Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
@@ -89,8 +89,8 @@ namespace MultiCdnApi
             }
             Assert.AreEqual(TenantId, partnerValue.TenantId);
             Assert.AreEqual(Name, partnerValue.Name);
+            Assert.AreEqual(TestHostname, partnerValue.Hostname);
             var partnerCdnConfiguration = partnerValue.CdnConfiguration;
-            Assert.AreEqual(TestHostname, partnerCdnConfiguration.Hostname);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
             Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }

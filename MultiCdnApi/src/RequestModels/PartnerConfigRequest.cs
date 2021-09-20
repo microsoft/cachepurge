@@ -13,12 +13,15 @@ namespace MultiCdnApi
 
         public string Name { get; set; }
 
+        public string Hostname { get; set; }
+
         public CdnConfiguration CdnConfiguration { get; set; }
 
         public override string ToString()
         {
             return $"{nameof(Tenant)}: {Tenant}, " +
                    $"{nameof(Name)}: {Name}, " +
+                   $"{nameof(Hostname)}: {Hostname}, " +
                    $"{nameof(CdnConfiguration)}: {CdnConfiguration}";
         }
     }

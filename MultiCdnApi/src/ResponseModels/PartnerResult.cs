@@ -29,7 +29,6 @@ namespace MultiCdnApi
             }
 
             var cdnConfigurationValue = new CdnConfigurationValue {
-                Hostname = cdnConfiguration?.Hostname ?? "",
                 PluginIsEnabled = pluginIsEnabled
             };
             Value = new PartnerValue
@@ -37,6 +36,7 @@ namespace MultiCdnApi
                 Id = partner.id,
                 TenantId = partner.TenantId,
                 Name = partner.Name,
+                Hostname = partner.Hostname,
                 CdnConfiguration = cdnConfigurationValue
             };
         }
@@ -47,12 +47,12 @@ namespace MultiCdnApi
         public string Id { get; set; }
         public string TenantId { get; set; }
         public string Name { get; set; }
+        public string Hostname { get; set; }
         public CdnConfigurationValue CdnConfiguration { get; set; }
     }
 
     public class CdnConfigurationValue
     {
-        public string Hostname { get; set; }
         public IDictionary<string, bool> PluginIsEnabled { get; set; }
     }  
 }

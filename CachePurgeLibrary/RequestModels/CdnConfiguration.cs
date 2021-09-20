@@ -10,8 +10,6 @@ namespace CachePurgeLibrary
 
     public class CdnConfiguration
     {
-        public string Hostname { get; set; }
-        
         public IDictionary<string, bool> PluginIsEnabled { get; set; }
 
         public CdnConfiguration()
@@ -22,13 +20,12 @@ namespace CachePurgeLibrary
         public CdnConfiguration(string rawCdnConfiguration)
         {
             var cdnConfiguration = JsonSerializer.Deserialize<CdnConfiguration>(rawCdnConfiguration);
-            Hostname = cdnConfiguration.Hostname;
             PluginIsEnabled = cdnConfiguration.PluginIsEnabled;
         }
 
         public override string ToString()
         {
-            return $"{nameof(Hostname)}: {Hostname}, ";
+            return $"{nameof(PluginIsEnabled)}: {PluginIsEnabled}";
         }
     }
 }

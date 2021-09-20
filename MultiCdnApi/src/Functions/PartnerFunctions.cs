@@ -57,8 +57,8 @@ namespace MultiCdnApi
             @"{" + "\n"
             + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used in AFD API to purge caches" + "\n"
             + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used in AFD API to purge caches" + "\n"
+            + @"  ""Hostname"": """", // can be empty; the hostname is used to convert relative urls to absolute" + "\n"  
             + @"  ""CdnConfiguration"": {" + "\n"
-            + @"     ""Hostname"": """"," + "\n"
             + @"     ""PluginIsEnabled"": {" + "\n"
             + @"        ""AFD"": true," + "\n"
             + @"        ""Akamai"": true" + "\n"
@@ -84,8 +84,9 @@ namespace MultiCdnApi
 
                 var tenant = createPartnerRequest.Tenant;
                 var name = createPartnerRequest.Name;
+                var hostname = createPartnerRequest.Hostname;
                 var cdnConfiguration = createPartnerRequest.CdnConfiguration;
-                var partner = new Partner(tenant, name, cdnConfiguration);
+                var partner = new Partner(tenant, name, hostname, cdnConfiguration);
                 await partnerTable.CreateItem(partner);
                 return new StringResult(partner.id);
             }

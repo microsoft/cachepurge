@@ -46,8 +46,8 @@ namespace MultiCdnApi
 
         [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
             @"{" + "\n"
-                 + @"    ""Description"": ""Operation Description""," + "\n"
-                 + @"    ""Hostname"": ""Purge Hostname""," + "\n"
+                 + @"    ""Description"": """", // The description be visible in AFD Portal" + "\n"
+                 + @"    ""Hostname"": """", // Hostname that can be used to convert relative urls to absolute" + "\n"
                  + @"    ""Urls"": [" + "\n"
                  + @"        ""url1""," + "\n"
                  + @"        ""url2""" + "\n"
@@ -95,8 +95,8 @@ namespace MultiCdnApi
                 var pluginIsEnabled = partner.CdnConfiguration.PluginIsEnabled;
                 foreach (var (pluginName, isCdnEnabled) in pluginIsEnabled)
                 {
-                    var cdn = Enum.Parse<CDN>(pluginName);
-                    if (isCdnEnabled)
+                    var cdnParsed = Enum.TryParse<CDN>(pluginName, out var cdn);
+                    if (isCdnEnabled && cdnParsed)
                     {
                         var partnerRequest = CdnRequestHelper.CreatePartnerRequest(cdn, partner, userRequest, description, ticketId);
                         await partnerRequestTable.CreatePartnerRequest(partnerRequest, cdn);
