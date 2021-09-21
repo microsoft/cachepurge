@@ -149,7 +149,8 @@ namespace MultiCdnApi
             createPartnerRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
                                                                               $@"""Tenant"": ""{TenantId}""," +
                                                                               $@"""Name"": ""{Name}""," +
-                                                                              $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""PluginIsEnabled"": {{""AFD"": true, ""Akamai"": true}}}}" +
+                                                                              $@"""Hostname"": ""{TestHostname}""," +
+                                                                              $@"""CdnConfiguration"": {{""PluginIsEnabled"": {{""AFD"": true, ""Akamai"": true}}}}" +
                                                                               "}"));
 
             var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
