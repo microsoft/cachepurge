@@ -55,9 +55,9 @@ namespace MultiCdnApi
         
         [PostContent("CreatePartner", "Create new Partner",
             @"{" + "\n"
-            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used in AFD API to purge caches" + "\n"
-            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used in AFD API to purge caches" + "\n"
-            + @"  ""Hostname"": """", // can be empty; the hostname is used to convert relative urls to absolute" + "\n"  
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: this name will be passed to AFD API to purge caches" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: this name will be passed to AFD API to purge caches" + "\n"
+            + @"  ""Hostname"": """", // can be empty; the hostname will be used to convert relative urls to absolute (will be used only if you have a list of relative URLs you want to purge)" + "\n"  
             + @"  ""CdnConfiguration"": {" + "\n"
             + @"     ""PluginIsEnabled"": {" + "\n"
             + @"        ""AFD"": true," + "\n"

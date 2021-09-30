@@ -46,9 +46,9 @@ namespace MultiCdnApi
 
         [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
             @"{" + "\n"
-                 + @"    ""Description"": """", // The description be visible in AFD Portal" + "\n"
-                 + @"    ""Hostname"": """", // Hostname that can be used to convert relative urls to absolute" + "\n"
-                 + @"    ""Urls"": [" + "\n"
+                 + @"    ""Description"": """", // The description will be visible in AFD Portal; can be empty" + "\n"
+                 + @"    ""Hostname"": """", // An empty string or a valid absolute URI (for example, 'https://th.bing.com'); it is used as a base URL to expand relative URLs - if you have relative URLs in the array of URLs below" + "\n"
+                 + @"    ""Urls"": [ // a list of URLs to purge from caches" + "\n"
                  + @"        ""url1""," + "\n"
                  + @"        ""url2""" + "\n"
                  + @"    ]" + "\n"
@@ -155,7 +155,7 @@ namespace MultiCdnApi
             }
             foreach (var purgeRequestUrl in purgeRequestUrls)
             {
-                var parsedUrl = new Uri(purgeRequestUrl);
+                var parsedUrl = new Uri(purgeRequestUrl, UriKind.RelativeOrAbsolute);
                 if (parsedUrl.IsAbsoluteUri)
                 {
                     result.Add(purgeRequestUrl);
