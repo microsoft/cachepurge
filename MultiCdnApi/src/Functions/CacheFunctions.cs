@@ -80,7 +80,7 @@ namespace MultiCdnApi
                 var partner = await partnerTable.GetItem(partnerId);
 
                 var hostname = purgeRequest.Hostname;
-                if (hostname == "")
+                if (string.IsNullOrWhiteSpace(hostname))
                 {
                     hostname = partner.Hostname;
                 }
