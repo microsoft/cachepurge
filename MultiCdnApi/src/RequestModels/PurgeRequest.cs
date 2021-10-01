@@ -16,5 +16,7 @@ namespace MultiCdnApi
         public string TicketId { get; set; }
 
         public string Hostname { get; set; }
+        
+        public bool TreatUrlsLikeTags { get; set; }
     }
 }

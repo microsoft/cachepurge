@@ -5,6 +5,7 @@
 
 namespace MultiCdnApi
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -53,24 +54,43 @@ namespace MultiCdnApi
 
             cacheFunctions = new CacheFunctions(partnerTable, userRequestTable, partnerRequestTable, new TelemetryConfiguration());
 
-            const string testTenantName = TestTenantId;
-            const string testPartnerName = TestPartnerId;
-            const string rawCdnConfiguration = "{\"Hostname\": \"\", \"PluginIsEnabled\": {\"AFD\": true, \"Akamai\": true}}";
+            testPartnerId = CreatePartner();
+        }
 
-            var partner = new Partner(testTenantName, testPartnerName, "", new CdnConfiguration(rawCdnConfiguration));
+        private string CreatePartner(bool enableAfd = true, bool enableAkamai = true)
+        {
+            var partner = new Partner(TestTenantId, TestPartnerId, "", new CdnConfiguration(
+                $@"{{
+                    ""Hostname"": """", 
+                    ""PluginIsEnabled"": {{
+                        ""AFD"": {enableAfd.ToString().ToLower()}, 
+                        ""Akamai"": {enableAkamai.ToString().ToLower()}
+                     }}
+                }}"));
             partnerTable.CreateItem(partner).Wait();
-            testPartnerId = partner.id;
+            return partner.id;
         }
 
         [TestMethod]
         public async Task CreateCachePurgeRequestByHostname()
         {
-            var userRequestId = await CallPurgeFunctionWithDefaultParameters();
+            var userRequestId = await CallPurgeFunctionWithDefaultParameters(testPartnerId);
             var savedUserRequest = await userRequestTable.GetItem(userRequestId);
             var partnerRequest = await partnerRequestTable.GetPartnerRequest(savedUserRequest.id, CDN.AFD);
-            AssertIsTestRequest(partnerRequest);
+            AssertIsAfdTestRequest(partnerRequest);
         }
         
+        [TestMethod]
+        public async Task CreateCachePurgeRequestByHostname_WithTags()
+        {
+            const string testTag = "testTag";
+            var savedUserRequest = await CallPurgeFunctionWithDefaultParameters(testPartnerId, urls: testTag, treatUrlsLikeTags: true);
+            var partnerRequestForAfd = await partnerRequestTable.GetPartnerRequest(savedUserRequest, CDN.AFD);
+            AssertIsAfdTestRequest(partnerRequestForAfd, testTag);
+            var partnerRequestForAkamai = await partnerRequestTable.GetPartnerRequest(savedUserRequest, CDN.Akamai);
+            AssertIsAkamaiTestRequest(partnerRequestForAkamai, testTag);
+        }
+
         [TestMethod]
         public async Task CreateCachePurgeRequestByHostname_Fail()
         {
@@ -98,16 +118,31 @@ namespace MultiCdnApi
         [TestMethod]
         public async Task CreateCachePurgeRequestByHostname_CosmosDbSerialization()
         {
-            _ = await CallPurgeFunctionWithDefaultParameters();
+            _ = await CallPurgeFunctionWithDefaultParameters(testPartnerId);
 
             var partnerRequest = afdPartnerRequest.First();
-            AssertIsTestRequest(partnerRequest.Value);
+            AssertIsAfdTestRequest(partnerRequest.Value);
+        }
+
+        [TestMethod]
+        public async Task TestRelativeUrls()
+        {
+            const string relativeUrl = "test";
+            var savedUserRequest = await CallPurgeFunctionWithDefaultParameters(testPartnerId, urls: relativeUrl);
+            var partnerRequestForAfd = await partnerRequestTable.GetPartnerRequest(savedUserRequest, CDN.AFD);
+            AssertIsAfdTestRequest(partnerRequestForAfd, TestHostname + "/" + relativeUrl);
+        }
+
+        [TestMethod]
+        public async Task TestRelativeUrls_FailWithoutBaseHostname()
+        {
+            Assert.ThrowsExceptionAsync<InvalidOperationException>(() => CallPurgeFunctionWithDefaultParameters("", "test"));
         }
 
         [TestMethod]
         public async Task TestCachePurgeStatus()
         {
-            var userRequestId = await CallPurgeFunctionWithDefaultParameters();
+            var userRequestId = await CallPurgeFunctionWithDefaultParameters(testPartnerId);
             var userRequestStatusResult = await CallPurgeStatus(userRequestId);
             Assert.AreEqual(typeof(UserRequestStatusValue), userRequestStatusResult.Value.GetType());
             var userRequestStatusValue = (UserRequestStatusValue) userRequestStatusResult.Value;
@@ -125,31 +160,45 @@ namespace MultiCdnApi
             Assert.IsTrue(statusResult.Value.ToString().Contains("not found"));
         }
 
-        private static void AssertIsTestRequest(IPartnerRequest partnerRequest)
+        private static void AssertIsAfdTestRequest(IPartnerRequest partnerRequest, string urlToPurge = TestHostname)
         {
+            AssertIsTestRequest(partnerRequest, CDN.AFD, urlToPurge);
             var afdPartnerRequest = partnerRequest as AfdPartnerRequest;
             Assert.IsNotNull(afdPartnerRequest);
             Assert.AreEqual($"{TestDescription} ({TestTicketId})", afdPartnerRequest.Description);
-            Assert.AreEqual(1, partnerRequest.Urls.Count);
-            Assert.IsTrue(partnerRequest.Urls.Contains(TestHostname));
-            Assert.AreEqual(CDN.AFD.ToString(), partnerRequest.CDN);
             Assert.AreEqual(TestTenantId, afdPartnerRequest.TenantID);
             Assert.AreEqual(TestPartnerId, afdPartnerRequest.PartnerID);
+        }
+
+        private static void AssertIsAkamaiTestRequest(IPartnerRequest partnerRequest, string urlToPurge = TestHostname)
+        {
+            AssertIsTestRequest(partnerRequest, CDN.Akamai, urlToPurge);
+            var akamaiPartnerRequest = partnerRequest as AkamaiPartnerRequest;
+            Assert.IsNotNull(akamaiPartnerRequest);
+            Assert.AreEqual(null, akamaiPartnerRequest.Network);
+        }
+
+        private static void AssertIsTestRequest(IPartnerRequest partnerRequest, CDN cdn, string urlToPurge = TestHostname)
+        {
+            Assert.AreEqual(1, partnerRequest.Urls.Count);
+            Assert.IsTrue(partnerRequest.Urls.Contains(urlToPurge));
+            Assert.AreEqual(cdn.ToString(), partnerRequest.CDN);
             Assert.AreEqual(partnerRequest.UserRequestID, partnerRequest.UserRequestID);
         }
 
-        private async Task<string> CallPurgeFunctionWithDefaultParameters()
+        private async Task<string> CallPurgeFunctionWithDefaultParameters(string partnerId, string hostname = TestHostname, string urls = TestHostname, bool treatUrlsLikeTags = false)
         {
             var cachePurgeRequest = new DefaultHttpContext().Request;
             cachePurgeRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
                                                                               $@"""Description"": ""{TestDescription}""," +
                                                                               $@"""TicketId"": ""{TestTicketId}""," +
-                                                                              $@"""Hostname"": ""{TestHostname}""," +
-                                                                              $@"""Urls"": [""{TestHostname}""]" + 
+                                                                              $@"""Hostname"": ""{hostname}""," +
+                                                                              $@"""Urls"": [""{urls}""]," + 
+                                                                              $@"""TreatUrlsLikeTags"": {treatUrlsLikeTags.ToString().ToLower()}" + 
                                                                               "}"));
             var result = await cacheFunctions.CreateCachePurgeRequestByHostname(
                 cachePurgeRequest,
-                testPartnerId,
+                partnerId,
                 Mock.Of<ILogger>());
             Assert.AreEqual(typeof(StringResult), result.GetType());
             Assert.IsTrue(((StringResult) result).Value is string);

@@ -51,7 +51,8 @@ namespace MultiCdnApi
                  + @"    ""Urls"": [ // a list of URLs to purge from caches" + "\n"
                  + @"        ""url1""," + "\n"
                  + @"        ""url2""" + "\n"
-                 + @"    ]" + "\n"
+                 + @"    ]," + "\n"
+                 + @"    ""TreatUrlsLikeTags"": false // optional parameter, will treat URLs as cache tags if set to 'true'"
                  + @"}")]
         [FunctionName("CreateCachePurgeRequestByHostname")]
         public async Task<IActionResult> CreateCachePurgeRequestByHostname(
@@ -84,7 +85,7 @@ namespace MultiCdnApi
                 {
                     hostname = partner.Hostname;
                 }
-                var urls = ResolveUrls(hostname, purgeRequest.Urls);
+                var urls = ResolveUrls(hostname, purgeRequest.Urls, purgeRequest.TreatUrlsLikeTags);
                 log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}: purging {urls.Count} urls for partner {partnerId}");
 
                 var userRequest = new UserRequest(partner.id, description, ticketId, hostname, urls);
@@ -145,29 +146,37 @@ namespace MultiCdnApi
         }
         
         
-        private static ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
+        private static ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls, bool treatUrlsLikeTags)
         {
-            var result = new HashSet<string>();
             Uri parsedHostname = null;
             if (!string.IsNullOrWhiteSpace(hostname))
             {
                 parsedHostname = new Uri(hostname);
             }
-            foreach (var purgeRequestUrl in purgeRequestUrls)
+
+            HashSet<string> result;
+            if (treatUrlsLikeTags)
             {
-                var parsedUrl = new Uri(purgeRequestUrl, UriKind.RelativeOrAbsolute);
-                if (parsedUrl.IsAbsoluteUri)
+                result = new HashSet<string>(purgeRequestUrls);
+            }
+            else {
+                result = new HashSet<string>();
+                foreach (var purgeRequestUrl in purgeRequestUrls)
                 {
-                    result.Add(purgeRequestUrl);
-                }
-                else
-                {
-                    if (parsedHostname == null)
+                    var parsedUrl = new Uri(purgeRequestUrl, UriKind.RelativeOrAbsolute);
+                    if (parsedUrl.IsAbsoluteUri)
                     {
-                        throw new InvalidOperationException("Urls are not absolute, but the hostname is empty");
+                        result.Add(purgeRequestUrl);
                     }
-                    parsedUrl = new Uri(parsedHostname, purgeRequestUrl);
-                    result.Add(parsedUrl.ToString());
+                    else
+                    {
+                        if (parsedHostname == null)
+                        {
+                            throw new InvalidOperationException("Urls are not absolute, but the hostname is empty");
+                        }
+                        parsedUrl = new Uri(parsedHostname, purgeRequestUrl);
+                        result.Add(parsedUrl.ToString());
+                    }
                 }
             }
             return result;
