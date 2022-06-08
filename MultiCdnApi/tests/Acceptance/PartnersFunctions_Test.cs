@@ -5,6 +5,7 @@
 
 namespace MultiCdnApi
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -32,10 +33,15 @@ namespace MultiCdnApi
         private const string TestHostname = "test_hostname";
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
+        
+        private bool authEnabledInConfig;
 
         [TestInitialize]
         public void Setup()
         {
+            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
+            EnvironmentConfig.AuthorizationEnabled = false;
+            
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(partners));
             partnerFunctions = new PartnerFunctions(partnerTable);
         }
@@ -58,7 +64,8 @@ namespace MultiCdnApi
         {
             var malformedCreatePartnerRequest = new DefaultHttpContext().Request;
             malformedCreatePartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["Test"] = "Bad"});
-            var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, null).Result;
+            var createPartnerResponse = partnerFunctions.CreatePartner(malformedCreatePartnerRequest, 
+                Mock.Of<ILogger>()).Result;
 
             Assert.AreEqual(typeof(ExceptionResult), createPartnerResponse.GetType());
         }
@@ -107,7 +114,8 @@ namespace MultiCdnApi
             var getPartnerRequest = new DefaultHttpContext().Request;
             getPartnerRequest.Query = new QueryCollection(new Dictionary<string, StringValues> {["partnerId"] = partnerId});
 
-            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), 
+                Mock.Of<ILogger>()).Result;
 
             Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
 
@@ -118,9 +126,10 @@ namespace MultiCdnApi
         [TestMethod]
         public void TestGetPartner_Fail()
         {
-            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, null).Result;
+            var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, 
+                Mock.Of<ILogger>()).Result;
 
-            Assert.AreEqual(typeof(StringResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
         }
 
         [TestMethod]
@@ -129,7 +138,8 @@ namespace MultiCdnApi
             this.partners.Clear();
             CreateTestPartner();
             var partnersResponse =
-                partnerFunctions.ListPartners(new DefaultHttpContext().Request, null).Result;
+                partnerFunctions.ListPartners(new DefaultHttpContext().Request, 
+                    Mock.Of<ILogger>()).Result;
             Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
             var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
 
@@ -152,8 +162,16 @@ namespace MultiCdnApi
                                                                               $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
                                                                               "}"));
 
-            var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, Mock.Of<ILogger>());
+            var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
+                Mock.Of<ILogger>());
             return createPartnerResponse.Result;
+        }
+        
+        [TestCleanup]
+        public void Teardown()
+        {
+            partnerTable.Dispose();
+            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }
