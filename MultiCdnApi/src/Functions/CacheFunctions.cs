@@ -46,9 +46,9 @@ namespace MultiCdnApi
 
         [PostContent("cachePurgeRequest", "Cache Purge Request: a JSON describing what urls to purge",
             @"{" + "\n"
-                 + @"    ""Description"": ""Operation Description""," + "\n"
-                 + @"    ""Hostname"": ""Purge Hostname""," + "\n"
-                 + @"    ""Urls"": [" + "\n"
+                 + @"    ""Description"": """", // The description will be visible in AFD Portal; can be empty" + "\n"
+                 + @"    ""Hostname"": """", // An empty string or a valid absolute URI (for example, 'https://th.bing.com'); it is used as a base URL to expand relative URLs - if you have relative URLs in the array of URLs below" + "\n"
+                 + @"    ""Urls"": [ // a list of URLs to purge from caches" + "\n"
                  + @"        ""url1""," + "\n"
                  + @"        ""url2""" + "\n"
                  + @"    ]" + "\n"
@@ -76,25 +76,32 @@ namespace MultiCdnApi
                     new JsonSerializerOptions {ReadCommentHandling = JsonCommentHandling.Skip});
                 var description = purgeRequest.Description;
                 var ticketId = purgeRequest.TicketId;
+
+                var partner = await partnerTable.GetItem(partnerId);
+
                 var hostname = purgeRequest.Hostname;
+                if (string.IsNullOrWhiteSpace(hostname))
+                {
+                    hostname = partner.Hostname;
+                }
                 var urls = ResolveUrls(hostname, purgeRequest.Urls);
                 log.LogInformation($"{nameof(CreateCachePurgeRequestByHostname)}: purging {urls.Count} urls for partner {partnerId}");
 
-                var partner = await partnerTable.GetItem(partnerId);
                 var userRequest = new UserRequest(partner.id, description, ticketId, hostname, urls);
 
                 await userRequestTable.CreateItem(userRequest);
                 var userRequestId = userRequest.id;
 
-                foreach (var partnerCdnConfiguration in partner.CdnConfigurations)
+                var pluginIsEnabled = partner.CdnConfiguration.PluginIsEnabled;
+                foreach (var (pluginName, isCdnEnabled) in pluginIsEnabled)
                 {
-                    var cdnWithCredentials = partnerCdnConfiguration.CdnWithCredentials;
-                    foreach (var cdnWithCredential in cdnWithCredentials)
+                    var cdnParsed = Enum.TryParse<CDN>(pluginName, out var cdn);
+                    if (isCdnEnabled && cdnParsed)
                     {
-                        var cdn = Enum.Parse<CDN>(cdnWithCredential.Key);
                         var partnerRequest = CdnRequestHelper.CreatePartnerRequest(cdn, partner, userRequest, description, ticketId);
                         await partnerRequestTable.CreatePartnerRequest(partnerRequest, cdn);
                         userRequest.NumTotalPartnerRequests++;
+                        userRequest.PluginStatuses[pluginName] = RequestStatus.PurgeSubmitted.ToString();
                     }
                 }
 
@@ -124,7 +131,11 @@ namespace MultiCdnApi
             try
             {
                 var userRequest = await userRequestTable.GetItem(userRequestId);
-                return new UserRequestStatusResult(userRequest);
+                if (userRequest != null)
+                {
+                    return new UserRequestStatusResult(userRequest);
+                }
+                return new JsonResult("Request with requestId " + userRequestId + "not found");
             }
             catch (Exception e)
             {
@@ -134,7 +145,7 @@ namespace MultiCdnApi
         }
         
         
-        private ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
+        private static ISet<string> ResolveUrls(string hostname, IEnumerable<string> purgeRequestUrls)
         {
             var result = new HashSet<string>();
             Uri parsedHostname = null;
@@ -144,7 +155,7 @@ namespace MultiCdnApi
             }
             foreach (var purgeRequestUrl in purgeRequestUrls)
             {
-                var parsedUrl = new Uri(purgeRequestUrl);
+                var parsedUrl = new Uri(purgeRequestUrl, UriKind.RelativeOrAbsolute);
                 if (parsedUrl.IsAbsoluteUri)
                 {
                     result.Add(purgeRequestUrl);

@@ -147,9 +147,13 @@ namespace CdnPlugin
                 {
                     var userReq = await userRequestTable.GetItem(partnerRequest.UserRequestID);
 
-                    if (userReq != null && userReq.NumCompletedPartnerRequests < userReq.NumTotalPartnerRequests)
+                    if (userReq != null && userReq.NumCompletedPartnerRequests <= userReq.NumTotalPartnerRequests)
                     {
-                        userReq.NumCompletedPartnerRequests++;
+                        if (RequestStatus.PurgeCompleted.ToString().Equals(partnerRequest.Status))
+                        {
+                            userReq.NumCompletedPartnerRequests++;
+                        }
+                        userReq.PluginStatuses[partnerRequest.CDN] = partnerRequest.Status;
                         await userRequestTable.UpsertItem(userReq);
                     }
                 }

@@ -13,9 +13,7 @@ namespace MultiCdnApi
 
         public string Name { get; set; }
 
-        public string ContactEmail { get; set; }
-
-        public string NotifyContactEmail { get; set; }
+        public string Hostname { get; set; }
 
         public CdnConfiguration CdnConfiguration { get; set; }
 
@@ -23,8 +21,7 @@ namespace MultiCdnApi
         {
             return $"{nameof(Tenant)}: {Tenant}, " +
                    $"{nameof(Name)}: {Name}, " +
-                   $"{nameof(ContactEmail)}: {ContactEmail}, " +
-                   $"{nameof(NotifyContactEmail)}: {NotifyContactEmail}, " +
+                   $"{nameof(Hostname)}: {Hostname}, " +
                    $"{nameof(CdnConfiguration)}: {CdnConfiguration}";
         }
     }

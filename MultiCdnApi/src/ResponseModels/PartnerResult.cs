@@ -7,36 +7,37 @@ namespace MultiCdnApi
 {
     using System.Collections.Generic;
     using CachePurgeLibrary;
+    using CdnLibrary;
     using Microsoft.AspNetCore.Mvc;
 
     public class PartnerResult : JsonResult
     {
         public PartnerResult(Partner partner) : base(new object())
         {
-            var cdnConfigurationResults = new List<CdnConfigurationValue>();
-            var partnerCdnConfigurations = partner.CdnConfigurations;
-            foreach (var cdnConfiguration in partnerCdnConfigurations)
-            {
-                var credentials = new Dictionary<string, string>();
-                foreach (var cdnConfigurationCredentialKey in cdnConfiguration.CdnWithCredentials.Keys)
-                {
-                    credentials[cdnConfigurationCredentialKey] = string.Empty;
-                }
-                
-                cdnConfigurationResults.Add(new CdnConfigurationValue
-                {
-                    Hostname = cdnConfiguration.Hostname,
-                    CdnCredentials = credentials 
-                });
+            var cdnConfiguration = partner.CdnConfiguration;
+            IDictionary<string, bool> pluginIsEnabled;
+            if (cdnConfiguration == null || cdnConfiguration.PluginIsEnabled == null)
+            { // handling old data while it's not updated yet
+                pluginIsEnabled = new Dictionary<string, bool> {
+                    { CDN.AFD.ToString() , true},
+                    { CDN.Akamai.ToString() , true},
+                };
             }
+            else
+            {
+                pluginIsEnabled = cdnConfiguration.PluginIsEnabled;
+            }
+
+            var cdnConfigurationValue = new CdnConfigurationValue {
+                PluginIsEnabled = pluginIsEnabled
+            };
             Value = new PartnerValue
             {
                 Id = partner.id,
                 TenantId = partner.TenantId,
                 Name = partner.Name,
-                ContactEmail = partner.ContactEmail,
-                NotifyContactEmail = partner.NotifyContactEmail,
-                CdnConfigurations = cdnConfigurationResults
+                Hostname = partner.Hostname,
+                CdnConfiguration = cdnConfigurationValue
             };
         }
     }
@@ -46,14 +47,12 @@ namespace MultiCdnApi
         public string Id { get; set; }
         public string TenantId { get; set; }
         public string Name { get; set; }
-        public string ContactEmail { get; set; }
-        public string NotifyContactEmail { get; set; }
-        public List<CdnConfigurationValue> CdnConfigurations { get; set; }
+        public string Hostname { get; set; }
+        public CdnConfigurationValue CdnConfiguration { get; set; }
     }
 
     public class CdnConfigurationValue
     {
-        public string Hostname { get; set; }
-        public IDictionary<string, string> CdnCredentials { get; set; }
+        public IDictionary<string, bool> PluginIsEnabled { get; set; }
     }  
 }

@@ -41,7 +41,11 @@ namespace MultiCdnApi
             try
             {
                 var partner = await partnerTable.GetItem(partnerId.ToString());
-                return new PartnerResult(partner);
+                if (partner != null)
+                {
+                    return new JsonResult(partner);
+                }
+                return new JsonResult("Partner with partnerId " + partnerId + " not found");
             }
             catch (Exception e)
             {
@@ -51,15 +55,13 @@ namespace MultiCdnApi
         
         [PostContent("CreatePartner", "Create new Partner",
             @"{" + "\n"
-            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: the tenant name is used in AFD API to purge caches" + "\n"
-            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: the name is used in AFD API to purge caches" + "\n"
-            + @"  ""ContactEmail"": ""contact@example.com"", // contact email" + "\n"
-            + @"  ""NotifyContactEmail"": ""notify@example.com"", // email for notifications" + "\n"
+            + @"  ""Tenant"": ""tenant_name"", // for example, 'Bing'. Note: this name will be passed to AFD API to purge caches" + "\n"
+            + @"  ""Name"": ""partner_name"", // for example, 'Bing_Multimedia'. Note: this name will be passed to AFD API to purge caches" + "\n"
+            + @"  ""Hostname"": """", // can be empty; the hostname will be used to convert relative urls to absolute (will be used only if you have a list of relative URLs you want to purge)" + "\n"  
             + @"  ""CdnConfiguration"": {" + "\n"
-            + @"     ""Hostname"": """"," + "\n"
-            + @"     ""CdnWithCredentials"": {" + "\n"
-            + @"        ""AFD"":"""", // Can be empty (default auth will be used)" + "\n"
-            + @"        ""Akamai"": """" // Can be empty (default auth will be used)" + "\n"
+            + @"     ""PluginIsEnabled"": {" + "\n"
+            + @"        ""AFD"": true," + "\n"
+            + @"        ""Akamai"": true" + "\n"
             + @"     }" 
             + @"  }" + "\n"
             + @"}")]
@@ -82,10 +84,9 @@ namespace MultiCdnApi
 
                 var tenant = createPartnerRequest.Tenant;
                 var name = createPartnerRequest.Name;
-                var contactEmail = createPartnerRequest.ContactEmail;
-                var notifyContactEmail = createPartnerRequest.NotifyContactEmail;
+                var hostname = createPartnerRequest.Hostname;
                 var cdnConfiguration = createPartnerRequest.CdnConfiguration;
-                var partner = new Partner(tenant, name, contactEmail, notifyContactEmail, new[] { cdnConfiguration });
+                var partner = new Partner(tenant, name, hostname, cdnConfiguration);
                 await partnerTable.CreateItem(partner);
                 return new StringResult(partner.id);
             }
@@ -104,11 +105,11 @@ namespace MultiCdnApi
             UserGroupAuthValidator.CheckUserAuthorized(req);
 
             log.LogInformation($"{nameof(ListPartners)}; " +
-                               $"invoked by {req.HttpContext.User?.Identity?.Name}");
+                               $"invoked by {req.HttpContext?.User?.Identity?.Name}");
             try
             {
                 var partners = await partnerTable.GetItems();
-                return new EnumerableResult<PartnerResult>(partners.Select(p => new PartnerResult(p)).ToList());
+                return new JsonResult(partners.ToArray());
             }
             catch (Exception e)
             {

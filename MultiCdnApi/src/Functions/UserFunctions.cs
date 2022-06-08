@@ -7,6 +7,7 @@ namespace MultiCdnApi
     using System.Linq;
     using System.Security.Claims;
     using System.Text;
+    using AzureFunctions.Extensions.Swashbuckle.Attribute;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.WebJobs;
@@ -16,6 +17,7 @@ namespace MultiCdnApi
 
     public class UserFunctions
     {
+        [SwaggerIgnore]
         [FunctionName("GetUserHeaders")]
         public IActionResult GetUserHeaders(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/headers")]
@@ -26,6 +28,7 @@ namespace MultiCdnApi
             return new JsonResult(headerDictionary);
         }
 
+        [SwaggerIgnore]
         [FunctionName("GetUser")]
         public IActionResult GetUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user")]
@@ -62,6 +65,7 @@ namespace MultiCdnApi
             return new JsonResult(result.ToString());
         }
 
+        [SwaggerIgnore]
         [FunctionName("GetClaims")]
         public IActionResult GetClaims(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/claims")]
@@ -73,7 +77,7 @@ namespace MultiCdnApi
             return new JsonResult(string.Join("; ", httpContextUser.Claims.Select(SerializeClaim)));
         }
 
-
+        [SwaggerIgnore]
         [FunctionName("GetGroups")]
         public IActionResult GetGroups(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/groups")]
@@ -88,6 +92,7 @@ namespace MultiCdnApi
                         .Select(c => c.Type + " : " + c.Value)));
         }
 
+        [SwaggerIgnore]
         [FunctionName("GetRoles")]
         public IActionResult GetRoles(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/roles")]
@@ -98,6 +103,7 @@ namespace MultiCdnApi
             return new JsonResult(roleClaim);
         }
 
+        [SwaggerIgnore]
         [FunctionName("GetScopes")]
         public IActionResult GetScopes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/scopes")]
@@ -108,6 +114,7 @@ namespace MultiCdnApi
             return new JsonResult("OK");
         }
         
+        [SwaggerIgnore]
         [FunctionName("IsAuthorized")]
         public IActionResult IsAuthorized(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/auth")]

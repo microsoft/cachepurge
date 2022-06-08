@@ -21,27 +21,20 @@ namespace MultiCdnApi
     using Moq;
 
     [TestClass]
-    public class PartnersFunctions_Test
+    public class PartnersFunctions_Test : GenericCachePurge_Test
     {
         private PartnerFunctions partnerFunctions;
         private IRequestTable<Partner> partnerTable;
 
         private const string TenantId = "FakeTenant";
         private const string Name = "FakePartner";
-        private const string DriContact = "driContact@example.test";
-        private const string NotifyContact = "notifyContact@example.test";
         private const string TestHostname = "test_hostname";
 
         private readonly Dictionary<string, Partner> partners = new Dictionary<string, Partner>();
         
-        private bool authEnabledInConfig;
-
         [TestInitialize]
         public void Setup()
         {
-            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
-            EnvironmentConfig.AuthorizationEnabled = false;
-            
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(partners));
             partnerFunctions = new PartnerFunctions(partnerTable);
         }
@@ -74,34 +67,32 @@ namespace MultiCdnApi
         {
             Assert.AreEqual(TenantId, partner.TenantId);
             Assert.AreEqual(Name, partner.Name);
-            Assert.AreEqual(DriContact, partner.ContactEmail);
-            Assert.AreEqual(NotifyContact, partner.NotifyContactEmail);
-            var partnerCdnConfigurations = partner.CdnConfigurations.ToList();
-            Assert.AreEqual(1, partnerCdnConfigurations.Count);
-            Assert.AreEqual(TestHostname, partnerCdnConfigurations[0].Hostname);
-            var cdnWithCredentials = partnerCdnConfigurations[0].CdnWithCredentials;
-            Assert.AreEqual(2, cdnWithCredentials.Count);
-            Assert.AreEqual("", cdnWithCredentials[CDN.AFD.ToString()]);
-            Assert.AreEqual("", cdnWithCredentials[CDN.Akamai.ToString()]);
+            Assert.AreEqual(TestHostname, partner.Hostname);
+            var partnerCdnConfiguration = partner.CdnConfiguration;
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
 
 
         
         private static void TestPartnerSerialization(JsonResult partner)
         {
-            Assert.AreEqual(typeof(PartnerValue), partner.Value.GetType());
-            var partnerValue = (PartnerValue) partner.Value;
+            Partner partnerValue;
+            if (partner.Value.GetType() == typeof(Partner[]))
+            {
+                Assert.AreEqual(1, ((Partner[])partner.Value).Length);
+                partnerValue = ((Partner[]) partner.Value)[0];
+            }
+            else
+            {
+                partnerValue = (Partner)partner.Value;
+            }
             Assert.AreEqual(TenantId, partnerValue.TenantId);
             Assert.AreEqual(Name, partnerValue.Name);
-            Assert.AreEqual(DriContact, partnerValue.ContactEmail);
-            Assert.AreEqual(NotifyContact, partnerValue.NotifyContactEmail);
-            var partnerCdnConfigurations = partnerValue.CdnConfigurations.ToList();
-            Assert.AreEqual(1, partnerCdnConfigurations.Count);
-            Assert.AreEqual(TestHostname, partnerCdnConfigurations[0].Hostname);
-            var cdnWithCredentials = partnerCdnConfigurations[0].CdnCredentials;
-            Assert.AreEqual(2, cdnWithCredentials.Count);
-            Assert.AreEqual("", cdnWithCredentials[CDN.AFD.ToString()]);
-            Assert.AreEqual("", cdnWithCredentials[CDN.Akamai.ToString()]);
+            Assert.AreEqual(TestHostname, partnerValue.Hostname);
+            var partnerCdnConfiguration = partnerValue.CdnConfiguration;
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.AFD.ToString()]);
+            Assert.IsTrue(partnerCdnConfiguration.PluginIsEnabled[CDN.Akamai.ToString()]);
         }
 
         [TestMethod]
@@ -117,9 +108,9 @@ namespace MultiCdnApi
             var partnerResult = partnerFunctions.GetPartner(getPartnerRequest, Guid.Parse(partnerId), 
                 Mock.Of<ILogger>()).Result;
 
-            Assert.AreEqual(typeof(PartnerResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(JsonResult), partnerResult.GetType());
 
-            var partner = (PartnerResult) partnerResult;
+            var partner = (JsonResult) partnerResult;
             TestPartnerSerialization(partner);
         }
 
@@ -129,7 +120,8 @@ namespace MultiCdnApi
             var partnerResult = partnerFunctions.GetPartner(new DefaultHttpContext().Request, Guid.Empty, 
                 Mock.Of<ILogger>()).Result;
 
-            Assert.AreEqual(typeof(ExceptionResult), partnerResult.GetType());
+            Assert.AreEqual(typeof(JsonResult), partnerResult.GetType());
+            Assert.IsTrue(((JsonResult)partnerResult).Value.ToString().Contains("not found"));
         }
 
         [TestMethod]
@@ -140,15 +132,15 @@ namespace MultiCdnApi
             var partnersResponse =
                 partnerFunctions.ListPartners(new DefaultHttpContext().Request, 
                     Mock.Of<ILogger>()).Result;
-            Assert.AreEqual(typeof(EnumerableResult<PartnerResult>), partnersResponse.GetType());
-            var partnersValue = ((EnumerableResult<PartnerResult>) partnersResponse).Value;
+            Assert.AreEqual(typeof(JsonResult), partnersResponse.GetType());
+            var partnersValue = ((JsonResult) partnersResponse).Value;
 
-            var retrievedPartners = partnersValue as IEnumerable<PartnerResult>;
+            var retrievedPartners = partnersValue as Partner[];
             Assert.IsNotNull(retrievedPartners);
             var retrievedPartnersList = retrievedPartners.ToList();
 
             Assert.AreEqual(1, retrievedPartnersList.Count);
-            TestPartnerSerialization(retrievedPartnersList.First());
+            TestPartnerSerialization((JsonResult)partnersResponse);
         }
 
         private IActionResult CreateTestPartner()
@@ -157,9 +149,8 @@ namespace MultiCdnApi
             createPartnerRequest.Body = new MemoryStream(Encoding.UTF8.GetBytes("{" +
                                                                               $@"""Tenant"": ""{TenantId}""," +
                                                                               $@"""Name"": ""{Name}""," +
-                                                                              $@"""ContactEmail"": ""{DriContact}""," +
-                                                                              $@"""NotifyContactEmail"": ""{NotifyContact}""," +
-                                                                              $@"""CdnConfiguration"": {{""Hostname"": ""{TestHostname}"", ""CdnWithCredentials"": {{""AFD"":"""", ""Akamai"":""""}}}}" +
+                                                                              $@"""Hostname"": ""{TestHostname}""," +
+                                                                              $@"""CdnConfiguration"": {{""PluginIsEnabled"": {{""AFD"": true, ""Akamai"": true}}}}" +
                                                                               "}"));
 
             var createPartnerResponse = partnerFunctions.CreatePartner(createPartnerRequest, 
@@ -171,7 +162,6 @@ namespace MultiCdnApi
         public void Teardown()
         {
             partnerTable.Dispose();
-            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }

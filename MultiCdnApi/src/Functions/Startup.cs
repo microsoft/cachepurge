@@ -27,6 +27,7 @@ namespace MultiCdnApi
                 options => {
                     options.ConfigureSwaggerGen = genOptions => genOptions.OperationFilter<PostContentFilter>();
                 });
+            builder.Services.AddApplicationInsightsTelemetry();
         }
     }
 }

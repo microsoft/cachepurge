@@ -21,7 +21,7 @@ namespace MultiCdnApi
     using Moq;
 
     [TestClass]
-    public class CacheFunctions_Test
+    public class CacheFunctions_Test : GenericCachePurge_Test
     {
         private CacheFunctions cacheFunctions;
         private IPartnerRequestTableManager<CDN> partnerRequestTable;
@@ -39,14 +39,9 @@ namespace MultiCdnApi
         private readonly IDictionary<string, AfdPartnerRequest> afdPartnerRequest = new Dictionary<string, AfdPartnerRequest>();
         private readonly IDictionary<string, AkamaiPartnerRequest> akamaiPartnerRequest = new Dictionary<string, AkamaiPartnerRequest>();
         
-        private bool authEnabledInConfig;
-
         [TestInitialize]
         public void Setup()
         {
-            authEnabledInConfig = EnvironmentConfig.AuthorizationEnabled;
-            EnvironmentConfig.AuthorizationEnabled = false;
-
             partnerTable = new PartnerTable(CdnLibraryTestHelper.MockCosmosDbContainer(new Dictionary<string, Partner>()));
 
             userRequestTable = new UserRequestTable(CdnLibraryTestHelper.MockCosmosDbContainer(userRequestDict));
@@ -60,11 +55,9 @@ namespace MultiCdnApi
 
             const string testTenantName = TestTenantId;
             const string testPartnerName = TestPartnerId;
-            const string testContactEmail = "testDri@n/a.com";
-            const string testNotifyContactEmail = "testNotify@n/a.com";
-            const string rawCdnConfiguration = "{\"Hostname\": \"\", \"CdnWithCredentials\": {\"AFD\":\"\", \"Akamai\":\"\"}}";
+            const string rawCdnConfiguration = "{\"Hostname\": \"\", \"PluginIsEnabled\": {\"AFD\": true, \"Akamai\": true}}";
 
-            var partner = new Partner(testTenantName, testPartnerName, testContactEmail, testNotifyContactEmail, new[] { new CdnConfiguration(rawCdnConfiguration) });
+            var partner = new Partner(testTenantName, testPartnerName, "", new CdnConfiguration(rawCdnConfiguration));
             partnerTable.CreateItem(partner).Wait();
             testPartnerId = partner.id;
         }
@@ -123,6 +116,15 @@ namespace MultiCdnApi
             Assert.AreEqual(0, userRequestStatusValue.NumCompletedPartnerRequests); // 0 because it is not initialized in plugins yet 
         }
 
+        [TestMethod]
+        public async Task TestCachePurgeStatus_WrongRequestId()
+        {
+            var statusResult = await CallPurgeStatus("MalformedRequestId");
+            Assert.AreEqual(typeof(JsonResult), statusResult.GetType());
+            Assert.IsNotNull(statusResult.Value, nameof(statusResult.Value) + " == null");
+            Assert.IsTrue(statusResult.Value.ToString().Contains("not found"));
+        }
+
         private static void AssertIsTestRequest(IPartnerRequest partnerRequest)
         {
             var afdPartnerRequest = partnerRequest as AfdPartnerRequest;
@@ -154,7 +156,7 @@ namespace MultiCdnApi
             return (string) ((StringResult) result).Value;
         }
 
-        private async Task<UserRequestStatusResult> CallPurgeStatus(string userRequestId)
+        private async Task<JsonResult> CallPurgeStatus(string userRequestId)
         {
             var emptyRequest = new DefaultHttpContext().Request;
             var statusResponse = await cacheFunctions.CachePurgeRequestByHostnameStatus(
@@ -162,8 +164,8 @@ namespace MultiCdnApi
                 testPartnerId,
                 userRequestId,
                 Mock.Of<ILogger>());
-            Assert.AreEqual(typeof(UserRequestStatusResult), statusResponse.GetType());
-            var userRequestStatusResult = (UserRequestStatusResult) statusResponse;
+            Assert.IsTrue(statusResponse is JsonResult);
+            var userRequestStatusResult = (JsonResult) statusResponse;
             return userRequestStatusResult;
         }
 
@@ -173,7 +175,6 @@ namespace MultiCdnApi
             partnerRequestTable.Dispose();
             partnerTable.Dispose();
             userRequestTable.Dispose();
-            EnvironmentConfig.AuthorizationEnabled = authEnabledInConfig;
         }
     }
 }
