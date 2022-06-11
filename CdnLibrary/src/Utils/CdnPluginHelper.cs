@@ -122,6 +122,7 @@ namespace CdnLibrary
                 HttpStatusCode.InternalServerError => RequestStatus.Error,
                 HttpStatusCode.TooManyRequests => RequestStatus.Throttled,
                 HttpStatusCode.Unauthorized => RequestStatus.Unauthorized,
+                HttpStatusCode.Forbidden => RequestStatus.Forbidden,
                 _ => RequestStatus.Unknown,
             };
         }

@@ -70,6 +70,15 @@ namespace CdnLibrary
         }
 
         [TestMethod]
+        public void SendPurgeRequest_Forbidden()
+        {
+            var purgeBody = new StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
+            const string id = "12345";
+            var requestInfo = AkamaiRequestProcessor.SendPurgeRequest("https://fakeUri", purgeBody, GetHandler(id, statusCode: HttpStatusCode.Forbidden), logger).Result;
+            Assert.AreEqual(RequestStatus.Forbidden, requestInfo.RequestStatus);
+        }
+
+        [TestMethod]
         public void GetRequestStatusFromResponse_CorrectRequestID()
         {
             var response = @"{

@@ -16,6 +16,7 @@ namespace CachePurgeLibrary
     {
         Error,
         Unauthorized,
+        Forbidden,
         Throttled,
         Unknown,
         BatchCreated,
