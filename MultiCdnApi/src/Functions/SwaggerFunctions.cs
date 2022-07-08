@@ -27,7 +27,7 @@ namespace MultiCdnApi
 
             log.LogInformation($"{nameof(SwaggerJson)}; " +
                                $"invoked by {request.HttpContext.User?.Identity?.Name}");
-            return Task.FromResult(swashBuckleClient.CreateSwaggerDocumentResponse(requestMessage));
+            return Task.FromResult(swashBuckleClient.CreateSwaggerJsonDocumentResponse(requestMessage));
         }
 
         [SwaggerIgnore]
